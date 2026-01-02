@@ -18,8 +18,12 @@ class AssignedTeacherRepository implements AssignedTeacherInterface {
 
     public function getTeacherCourses($session_id, $teacher_id, $semester_id) {
         if($semester_id == 0) {
-            $semester_id = Semester::where('session_id', $session_id)
-            ->first()->id;
+            $semester = Semester::where('session_id', $session_id)->first();
+
+            if (!$semester) {
+                return collect(); // Return an empty collection if no semester is found
+            }
+            $semester_id = $semester->id;
         }
         return AssignedTeacher::with(['course', 'schoolClass', 'section'])->where('session_id', $session_id)
                         ->where('teacher_id', $teacher_id)

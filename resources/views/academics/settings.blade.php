@@ -86,6 +86,7 @@
                                     </p>
                                     <form action="{{route('school.attendance.type.update')}}" method="POST">
                                         @csrf
+                                        @if($academic_setting)
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="attendance_type" id="attendance_type_section" {{($academic_setting->attendance_type == 'section')?'checked="checked"':null}} value="section">
                                             <label class="form-check-label" for="attendance_type_section">
@@ -98,6 +99,7 @@
                                                 Attendance by Course
                                             </label>
                                         </div>
+                                        @endif
 
                                         <button type="submit" class="mt-3 btn btn-sm btn-outline-primary"><i class="bi bi-check2"></i> Save</button>
                                     </form>
@@ -246,10 +248,12 @@
                                         <p class="text-primary">
                                             <small><i class="bi bi-exclamation-diamond-fill me-2"></i> Disallow at the start of a "Semester".</small>
                                         </p>
+                                        @if($academic_setting)
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" name="marks_submission_status" id="marks_submission_status_check" {{($academic_setting->marks_submission_status == 'on')?'checked="checked"':null}}>
                                             <label class="form-check-label" for="marks_submission_status_check">{{($academic_setting->marks_submission_status == 'on')?'Allowed':'Disallowed'}}</label>
                                         </div>
+                                        @endif
                                         <button type="submit" class="mt-3 btn btn-sm btn-outline-primary"><i class="bi bi-check2"></i> Save</button>
                                     </form>
                                 </div>
