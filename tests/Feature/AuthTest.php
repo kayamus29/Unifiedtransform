@@ -48,7 +48,7 @@ class AuthTest extends TestCase
             'password' => Hash::make($password),
         ]);
 
-        $response = $this->post('/login', [
+        $response = $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class)->post('/login', [
             'email' => $user->email,
             'password' => $password,
         ]);
@@ -71,7 +71,7 @@ class AuthTest extends TestCase
             'password' => Hash::make($password),
         ]);
 
-        $response = $this->from('/login')->post('/login', [
+        $response = $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class)->from('/login')->post('/login', [
             'email' => $user->email,
             'password' => '::incorrect-password::',
         ]);
