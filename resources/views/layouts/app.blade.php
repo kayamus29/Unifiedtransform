@@ -7,7 +7,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Unifiedtransform') }}</title>
+    <title>{{ $site_setting->school_name ?? config('app.name', 'Unifiedtransform') }}</title>
 
     <link rel="shortcut icon" href="{{asset('favicon_io/favicon.ico')}}">
     <link rel="shortcut icon" sizes="16x16" href="{{asset('favicon_io/favicon-16x16.png')}}">
@@ -27,13 +27,38 @@
    
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: {{ $site_setting->primary_color ?? '#3490dc' }};
+            --secondary-color: {{ $site_setting->secondary_color ?? '#ffffff' }};
+        }
+        .bg-primary, .btn-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+        /* Gradient override for nav links if needed, or remove existing linear-gradient */
+        .nav-link.active, .bg-dark {
+             background-image: linear-gradient(-45deg, var(--primary-color), var(--secondary-color, var(--primary-color))) !important;
+        }
+        a {
+            color: var(--primary-color);
+        }
+    </style>
 </head>
 <body>
     <div id="app">
         <nav class="navbar sticky-top navbar-expand-md navbar-light bg-white border-btm-e6">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
-                    <i class="bi bi-house"></i> {{ config('app.name', 'Laravel') }}
+                    @if(isset($site_setting) && $site_setting->school_logo_path)
+                        <img src="{{ asset($site_setting->school_logo_path) }}" alt="Logo" height="30" class="d-inline-block align-top me-2">
+                    @else
+                        <i class="bi bi-house"></i>
+                    @endif
+                    {{ $site_setting->school_name ?? config('app.name', 'Laravel') }}
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
@@ -63,6 +88,9 @@
                     @endauth
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
+                        <!-- Accounting Links -->
+
+
                         <!-- Authentication Links -->
                         @guest
                             @if (Route::has('login'))
@@ -80,6 +108,9 @@
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{route('password.edit')}}">
                                         <i class="bi bi-key me-2"></i> Change Password
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('settings.site.edit') }}">
+                                        <i class="bi bi-gear me-2"></i> Site Settings
                                     </a>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
@@ -103,7 +134,7 @@
     </div>
 
     <div id="watermark">
-        <p>Unifiedtransform</p>
+        <p>{{ $site_setting->school_name ?? 'Unifiedtransform' }}</p>
     </div>
 </body>
 </html>

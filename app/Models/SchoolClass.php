@@ -37,4 +37,12 @@ class SchoolClass extends Model
     {
         return $this->hasMany(Syllabus::class, 'class_id', 'id');
     }
+
+    /**
+     * Get the class fees for the class.
+     */
+    public function classFees()
+    {
+        return $this->hasMany(ClassFee::class, 'class_id');
+    }
 }

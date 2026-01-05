@@ -21,6 +21,8 @@ class StudentParentInfo extends Model
         'father_phone',
         'mother_name',
         'mother_phone',
+        'guardian_email',
+        'guardian_phone',
         'parent_address',
     ];
 

@@ -23,6 +23,9 @@ use App\Http\Controllers\GradingSystemController;
 use App\Http\Controllers\SchoolSessionController;
 use App\Http\Controllers\AcademicSettingController;
 use App\Http\Controllers\AssignedTeacherController;
+use App\Http\Controllers\SiteSettingController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\StaffAttendanceController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
 
 /*
@@ -142,8 +145,50 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/promote', [PromotionController::class, 'create'])->name('promotions.create');
     Route::post('/promotions/promote', [PromotionController::class, 'store'])->name('promotions.store');
 
+    // Accounting Dashboard
+    Route::get('/accounting/dashboard', [App\Http\Controllers\AccountingDashboardController::class, 'index'])->name('accounting.dashboard');
+
+    // Fee Heads
+    Route::get('/accounting/fees/heads', [App\Http\Controllers\FeeHeadController::class, 'index'])->name('accounting.fees.heads.index');
+    Route::post('/accounting/fees/heads', [App\Http\Controllers\FeeHeadController::class, 'store'])->name('accounting.fees.heads.store');
+    Route::delete('/accounting/fees/heads/{id}', [App\Http\Controllers\FeeHeadController::class, 'destroy'])->name('accounting.fees.heads.destroy');
+
+    // Class Fees
+    Route::get('/accounting/fees/assign', [App\Http\Controllers\ClassFeeController::class, 'index'])->name('accounting.fees.class.index');
+    Route::post('/accounting/fees/assign', [App\Http\Controllers\ClassFeeController::class, 'store'])->name('accounting.fees.class.store');
+    Route::delete('/accounting/fees/assign/{id}', [App\Http\Controllers\ClassFeeController::class, 'destroy'])->name('accounting.fees.class.destroy');
+
+    // Payments
+    Route::get('/accounting/payments', [App\Http\Controllers\PaymentController::class, 'index'])->name('accounting.payments.index');
+    Route::get('/accounting/payments/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('accounting.payments.create');
+    Route::post('/accounting/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('accounting.payments.store');
+    Route::get('/accounting/payments/{id}', [App\Http\Controllers\PaymentController::class, 'show'])->name('accounting.payments.show');
+
+    // Expenses
+    Route::get('/accounting/expenses', [App\Http\Controllers\ExpenseController::class, 'index'])->name('accounting.expenses.index');
+    Route::post('/accounting/expenses', [App\Http\Controllers\ExpenseController::class, 'store'])->name('accounting.expenses.store');
+    Route::post('/accounting/expenses/{id}/status', [App\Http\Controllers\ExpenseController::class, 'updateStatus'])->name('accounting.expenses.updateStatus');
+    Route::post('/accounting/expenses/{id}/correct', [App\Http\Controllers\ExpenseController::class, 'correct'])->name('accounting.expenses.correct');
+    Route::delete('/accounting/expenses/{id}', [App\Http\Controllers\ExpenseController::class, 'destroy'])->name('accounting.expenses.destroy');
+
+    // Staff Management
+    Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
+    Route::get('/staff/create', [StaffController::class, 'create'])->name('staff.create');
+    Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
+    Route::get('/staff/edit/{id}', [StaffController::class, 'edit'])->name('staff.edit');
+    Route::post('/staff/update/{id}', [StaffController::class, 'update'])->name('staff.update');
+
+    // Staff Attendance
+    Route::get('/staff/attendance', [StaffAttendanceController::class, 'index'])->name('staff.attendance.index');
+    Route::post('/staff/attendance/check-in', [StaffAttendanceController::class, 'checkIn'])->name('staff.attendance.checkin');
+    Route::post('/staff/attendance/check-out', [StaffAttendanceController::class, 'checkOut'])->name('staff.attendance.checkout');
+
     // Academic settings
     Route::get('/academics/settings', [AcademicSettingController::class, 'index']);
+
+    // Site Settings (Whitelabeling)
+    Route::get('/settings/site', [SiteSettingController::class, 'edit'])->name('settings.site.edit');
+    Route::post('/settings/site', [SiteSettingController::class, 'update'])->name('settings.site.update');
 
     // Calendar events
     Route::get('calendar-event', [EventController::class, 'index'])->name('events.show');

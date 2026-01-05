@@ -22,8 +22,10 @@ class HomeController extends Controller
      * @return void
      */
     public function __construct(
-        UserInterface $userRepository, SchoolSessionInterface $schoolSessionRepository, SchoolClassInterface $schoolClassRepository)
-    {
+        UserInterface $userRepository,
+        SchoolSessionInterface $schoolSessionRepository,
+        SchoolClassInterface $schoolClassRepository
+    ) {
         // $this->middleware('auth');
         $this->userRepository = $userRepository;
         $this->schoolSessionRepository = $schoolSessionRepository;
@@ -52,12 +54,38 @@ class HomeController extends Controller
         $noticeRepository = new NoticeRepository();
         $notices = $noticeRepository->getAll($current_school_session_id);
 
+        // Absences Today
+        $absentStaff = [];
+        $absentStudents = [];
+        $isSchoolDay = \Carbon\Carbon::now()->isWeekday();
+
+        if ($isSchoolDay && auth()->user()->role == 'admin') {
+            // Staff Absence: All staff who haven't checked in today
+            $today = \Carbon\Carbon::today();
+            $staffIdsWithAttendance = \App\Models\StaffAttendance::where('date', $today->toDateString())
+                ->pluck('user_id')
+                ->toArray();
+
+            $absentStaff = \App\Models\User::whereIn('role', ['staff', 'librarian'])
+                ->whereNotIn('id', $staffIdsWithAttendance)
+                ->get();
+
+            // Student Absence: Students marked 'Absent' in the attendances table for today
+            $absentStudents = \App\Models\Attendance::with('student', 'schoolClass')
+                ->whereDate('created_at', $today)
+                ->where('status', 'Absent')
+                ->get();
+        }
+
         $data = [
-            'classCount'    => $classCount,
-            'studentCount'  => $studentCount,
-            'teacherCount'  => $teacherCount,
-            'notices'       => $notices,
+            'classCount' => $classCount,
+            'studentCount' => $studentCount,
+            'teacherCount' => $teacherCount,
+            'notices' => $notices,
             'maleStudentsBySession' => $maleStudentsBySession,
+            'absentStaff' => $absentStaff,
+            'absentStudents' => $absentStudents,
+            'isSchoolDay' => $isSchoolDay,
         ];
 
         return view('home', $data);
