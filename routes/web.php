@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('final-marks-submission-status/update', [AcademicSettingController::class, 'updateFinalMarksSubmissionStatus'])->name('final.marks.submission.status.update');
 
         Route::post('attendance/type/update', [AcademicSettingController::class, 'updateAttendanceType'])->name('attendance.type.update');
+        Route::post('default-weights/update', [AcademicSettingController::class, 'updateDefaultWeights'])->name('default.weights.update');
 
         // Class
         Route::post('class/create', [SchoolClassController::class, 'store'])->name('class.create');

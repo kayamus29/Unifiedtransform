@@ -24,11 +24,15 @@ class ExamRuleStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'total_marks'               => 'required|numeric',
-            'pass_marks'                => 'required|numeric',
-            'marks_distribution_note'   => 'required',
-            'exam_id'                   => 'required|integer',
-            'session_id'                => 'required|integer'
+            'total_marks' => 'required|numeric',
+            'pass_marks' => 'required|numeric',
+            'names' => 'required|array',
+            'names.*' => 'required|string',
+            'weights' => 'required|array',
+            'weights.*' => 'required|numeric|min:0|max:100',
+            'marks_distribution_note' => 'required',
+            'exam_id' => 'required|integer',
+            'session_id' => 'required|integer'
         ];
     }
 }

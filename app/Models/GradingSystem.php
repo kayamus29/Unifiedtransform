@@ -18,11 +18,18 @@ class GradingSystem extends Model
         'session_id'
     ];
 
-    public function semester() {
+    public function semester()
+    {
         return $this->belongsTo(Semester::class, 'semester_id');
     }
 
-    public function schoolClass() {
+    public function schoolClass()
+    {
         return $this->belongsTo(SchoolClass::class, 'class_id');
+    }
+
+    public function schoolClasses()
+    {
+        return $this->belongsToMany(SchoolClass::class, 'class_grading_system', 'grading_system_id', 'class_id');
     }
 }

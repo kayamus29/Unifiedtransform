@@ -24,14 +24,24 @@ class Exam extends Model
     /**
      * Get the course.
      */
-    public function course() {
+    public function course()
+    {
         return $this->belongsTo(Course::class, 'course_id');
     }
 
     /**
      * Get the semester.
      */
-    public function semester() {
+    public function semester()
+    {
         return $this->belongsTo(Semester::class, 'semester_id');
+    }
+
+    /**
+     * Get the exam rule.
+     */
+    public function examRule()
+    {
+        return $this->hasOne(ExamRule::class, 'exam_id');
     }
 }

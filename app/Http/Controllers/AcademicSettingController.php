@@ -48,7 +48,7 @@ class AcademicSettingController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function index()
     {
@@ -72,14 +72,14 @@ class AcademicSettingController extends Controller
 
         $data = [
             'current_school_session_id' => $current_school_session_id,
-            'latest_school_session_id'  => $latest_school_session->id,
-            'academic_setting'          => $academic_setting,
-            'school_sessions'           => $school_sessions,
-            'school_classes'            => $school_classes,
-            'school_sections'           => $school_sections,
-            'teachers'                  => $teachers,
-            'courses'                   => $courses,
-            'semesters'                 => $semesters,
+            'latest_school_session_id' => $latest_school_session->id,
+            'academic_setting' => $academic_setting,
+            'school_sessions' => $school_sessions,
+            'school_classes' => $school_classes,
+            'school_sections' => $school_sections,
+            'teachers' => $teachers,
+            'courses' => $courses,
+            'semesters' => $semesters,
         ];
 
         return view('academics.settings', $data);
@@ -89,7 +89,7 @@ class AcademicSettingController extends Controller
      * Update the specified resource in storage.
      *
      * @param  AttendanceTypeUpdateRequest  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function updateAttendanceType(AttendanceTypeUpdateRequest $request)
     {
@@ -102,11 +102,49 @@ class AcademicSettingController extends Controller
         }
     }
 
-    public function updateFinalMarksSubmissionStatus(Request $request) {
+    public function updateFinalMarksSubmissionStatus(Request $request)
+    {
         try {
             $this->academicSettingRepository->updateFinalMarksSubmissionStatus($request);
 
             return back()->with('status', 'Final marks submission status update was successful!');
+        } catch (\Exception $e) {
+            return back()->withError($e->getMessage());
+        }
+    }
+
+    public function updateDefaultWeights(Request $request)
+    {
+        $request->validate([
+            'names' => 'required|array',
+            'weights' => 'required|array',
+            'names.*' => 'required|string',
+            'weights.*' => 'required|integer|min:0|max:100',
+        ]);
+
+        $names = $request->names;
+        $weights = $request->weights;
+
+        if (count($names) !== count($weights)) {
+            return back()->withError('Invalid data submitted.');
+        }
+
+        if (array_sum($weights) != 100) {
+            return back()->withError('The sum of weights must be exactly 100%.');
+        }
+
+        $breakdown = [];
+        foreach ($names as $index => $name) {
+            $breakdown[] = [
+                'name' => $name,
+                'weight' => (int) $weights[$index]
+            ];
+        }
+
+        try {
+            $this->academicSettingRepository->updateDefaultWeights(['marks_breakdown' => $breakdown]);
+
+            return back()->with('status', 'Default weights update was successful!');
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }

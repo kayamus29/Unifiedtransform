@@ -13,12 +13,20 @@ class Mark extends Model
 
     protected $fillable = [
         'marks',
+        'exam_mark',
+        'ca1_mark',
+        'ca2_mark',
         'student_id',
         'class_id',
         'section_id',
         'course_id',
         'exam_id',
-        'session_id'
+        'session_id',
+        'breakdown_marks'
+    ];
+
+    protected $casts = [
+        'breakdown_marks' => 'array',
     ];
 
     /**
@@ -32,28 +40,32 @@ class Mark extends Model
     /**
      * Get the schoolClass.
      */
-    public function schoolClass() {
+    public function schoolClass()
+    {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
     /**
      * Get the section.
      */
-    public function section() {
+    public function section()
+    {
         return $this->belongsTo(Section::class, 'section_id');
     }
 
     /**
      * Get the course.
      */
-    public function course() {
+    public function course()
+    {
         return $this->belongsTo(Course::class, 'course_id');
     }
 
     /**
      * Get the exam.
      */
-    public function exam() {
+    public function exam()
+    {
         return $this->belongsTo(Exam::class, 'exam_id');
     }
 }

@@ -31,6 +31,14 @@ class SchoolClass extends Model
     }
 
     /**
+     * Get the grading systems for the class.
+     */
+    public function gradingSystems()
+    {
+        return $this->belongsToMany(GradingSystem::class, 'class_grading_system', 'class_id', 'grading_system_id');
+    }
+
+    /**
      * Get the syllabi for the class.
      */
     public function syllabi()

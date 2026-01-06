@@ -23,16 +23,33 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
-            $site_setting = \App\Models\SiteSetting::first();
-            if (!$site_setting) {
-                // Ensure there is always a setting object to avoid null checks in views
-                $site_setting = new \App\Models\SiteSetting([
-                    'school_name' => config('app.name'),
-                    'primary_color' => '#3490dc',
-                ]);
+        // Share site settings globally with all views
+        view()->composer('*', function ($view) {
+            $site_setting = null;
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
+                    $site_setting = \App\Models\SiteSetting::first();
+                }
+            } catch (\Exception $e) {
+                // Ignore DB errors during boot (e.g. before migrations)
             }
-            \Illuminate\Support\Facades\View::share('site_setting', $site_setting);
-        }
+
+            if (!$site_setting) {
+                // Fallback to default object if DB record is missing
+                $site_setting = (object) [
+                    'school_name' => config('app.name', 'Unifiedtransform'),
+                    'primary_color' => '#3490dc',
+                    'secondary_color' => '#ffffff',
+                    'school_logo_path' => null,
+                    'login_background_path' => null,
+                    'office_lat' => 6.5244,
+                    'office_long' => 3.3792,
+                    'geo_range' => 500,
+                    'late_time' => '08:00',
+                ];
+            }
+
+            $view->with('site_setting', $site_setting);
+        });
     }
 }

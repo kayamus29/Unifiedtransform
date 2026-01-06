@@ -19,8 +19,9 @@ class SiteSettingController extends Controller
         $setting = SiteSetting::first();
         if (!$setting) {
             $setting = SiteSetting::create([
-                'school_name' => 'Unifiedtransform',
+                'school_name' => config('app.name', 'Unifiedtransform'),
                 'primary_color' => '#3490dc',
+                'secondary_color' => '#ffffff',
             ]);
         }
         return view('settings.site', compact('setting'));
@@ -54,13 +55,13 @@ class SiteSettingController extends Controller
         $setting->late_time = $request->late_time;
 
         if ($request->hasFile('school_logo')) {
-            $path = $request->file('school_logo')->store('public/uploads/logos');
-            $setting->school_logo_path = Storage::url($path);
+            $path = $request->file('school_logo')->store('uploads/logos', 'public');
+            $setting->school_logo_path = asset('storage/' . $path);
         }
 
         if ($request->hasFile('login_background')) {
-            $path = $request->file('login_background')->store('public/uploads/backgrounds');
-            $setting->login_background_path = Storage::url($path);
+            $path = $request->file('login_background')->store('uploads/backgrounds', 'public');
+            $setting->login_background_path = asset('storage/' . $path);
         }
 
         $setting->save();

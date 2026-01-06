@@ -7,10 +7,25 @@ use App\Models\Mark;
 use App\Models\FinalMark;
 use App\Interfaces\MarkInterface;
 
-class MarkRepository implements MarkInterface {
-    public function create($rows) {
+class MarkRepository implements MarkInterface
+{
+    public function create($rows)
+    {
         try {
-            foreach($rows as $row){
+            foreach ($rows as $row) {
+                $data = [
+                    'marks' => $row['marks'] ?? 0,
+                ];
+
+                if (isset($row['exam_mark']))
+                    $data['exam_mark'] = $row['exam_mark'];
+                if (isset($row['ca1_mark']))
+                    $data['ca1_mark'] = $row['ca1_mark'];
+                if (isset($row['ca2_mark']))
+                    $data['ca2_mark'] = $row['ca2_mark'];
+                if (isset($row['breakdown_marks']))
+                    $data['breakdown_marks'] = $row['breakdown_marks'];
+
                 Mark::updateOrCreate([
                     'exam_id' => $row['exam_id'],
                     'student_id' => $row['student_id'],
@@ -18,65 +33,71 @@ class MarkRepository implements MarkInterface {
                     'class_id' => $row['class_id'],
                     'section_id' => $row['section_id'],
                     'course_id' => $row['course_id']
-                ],['marks' => $row['marks']]);
+                ], $data);
             }
         } catch (\Exception $e) {
-            throw new \Exception('Failed to update students marks. '.$e->getMessage());
+            throw new \Exception('Failed to update students marks. ' . $e->getMessage());
         }
     }
 
-    public function getAll($session_id, $semester_id, $class_id, $section_id, $course_id) {
+    public function getAll($session_id, $semester_id, $class_id, $section_id, $course_id)
+    {
         $exam_ids = Exam::where('semester_id', $semester_id)->pluck('id')->toArray();
-        return Mark::with('student','exam')->where('session_id', $session_id)
-                    ->whereIn('exam_id', $exam_ids)
-                    ->where('class_id', $class_id)
-                    ->where('section_id', $section_id)
-                    ->where('course_id', $course_id)
-                    ->get();
+        return Mark::with('student', 'exam')->where('session_id', $session_id)
+            ->whereIn('exam_id', $exam_ids)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('course_id', $course_id)
+            ->get();
     }
 
-    public function getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id) {
+    public function getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id)
+    {
         $exam_ids = Exam::where('semester_id', $semester_id)->pluck('id')->toArray();
-        return Mark::with('student','exam')->where('session_id', $session_id)
-                    ->whereIn('exam_id', $exam_ids)
-                    ->where('student_id', $student_id)
-                    ->where('class_id', $class_id)
-                    ->where('section_id', $section_id)
-                    ->where('course_id', $course_id)
-                    ->get();
+        return Mark::with('student', 'exam')->where('session_id', $session_id)
+            ->whereIn('exam_id', $exam_ids)
+            ->where('student_id', $student_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('course_id', $course_id)
+            ->get();
     }
 
-    public function getFinalMarksCount($session_id, $semester_id, $class_id, $section_id, $course_id) {
+    public function getFinalMarksCount($session_id, $semester_id, $class_id, $section_id, $course_id)
+    {
         return FinalMark::where('session_id', $session_id)
-                    ->where('semester_id', $semester_id)
-                    ->where('class_id', $class_id)
-                    ->where('section_id', $section_id)
-                    ->where('course_id', $course_id)
-                    ->count();
+            ->where('semester_id', $semester_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('course_id', $course_id)
+            ->count();
     }
 
-    public function getAllFinalMarks($session_id, $semester_id, $class_id, $section_id, $course_id) {
+    public function getAllFinalMarks($session_id, $semester_id, $class_id, $section_id, $course_id)
+    {
         return FinalMark::with('student')->where('session_id', $session_id)
-                    ->where('semester_id', $semester_id)
-                    ->where('class_id', $class_id)
-                    ->where('section_id', $section_id)
-                    ->where('course_id', $course_id)
-                    ->get();
+            ->where('semester_id', $semester_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('course_id', $course_id)
+            ->get();
     }
 
-    public function getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id) {
+    public function getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id)
+    {
         return FinalMark::with('student')->where('session_id', $session_id)
-                    ->where('student_id', $student_id)
-                    ->where('semester_id', $semester_id)
-                    ->where('class_id', $class_id)
-                    ->where('section_id', $section_id)
-                    ->where('course_id', $course_id)
-                    ->get();
+            ->where('student_id', $student_id)
+            ->where('semester_id', $semester_id)
+            ->where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('course_id', $course_id)
+            ->get();
     }
 
-    public function storeFinalMarks($rows) {
+    public function storeFinalMarks($rows)
+    {
         try {
-            foreach($rows as $row){
+            foreach ($rows as $row) {
                 FinalMark::updateOrCreate([
                     'semester_id' => $row['semester_id'],
                     'student_id' => $row['student_id'],
@@ -84,14 +105,14 @@ class MarkRepository implements MarkInterface {
                     'class_id' => $row['class_id'],
                     'section_id' => $row['section_id'],
                     'course_id' => $row['course_id']
-                ],[
+                ], [
                     'calculated_marks' => $row['calculated_marks'],
                     'final_marks' => $row['final_marks'],
-                    'note'  => $row['note'],
+                    'note' => $row['note'],
                 ]);
             }
         } catch (\Exception $e) {
-            throw new \Exception('Failed to update students final marks. '.$e->getMessage());
+            throw new \Exception('Failed to update students final marks. ' . $e->getMessage());
         }
     }
 }

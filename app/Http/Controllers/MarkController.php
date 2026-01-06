@@ -52,7 +52,7 @@ class MarkController extends Controller
      * Display a listing of the resource.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function index(Request $request)
     {
@@ -70,27 +70,27 @@ class MarkController extends Controller
         $markRepository = new MarkRepository();
         $marks = $markRepository->getAllFinalMarks($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
 
-        if(!$marks) {
-            return abort(404);
+        if (!$marks) {
+            abort(404);
         }
 
         $gradingSystemRepository = new GradingSystemRepository();
         $gradingSystem = $gradingSystemRepository->getGradingSystem($current_school_session_id, $semester_id, $class_id);
 
-        if(!$gradingSystem) {
-            return abort(404);
+        if (!$gradingSystem) {
+            abort(404);
         }
 
         $gradeRulesRepository = new GradeRuleRepository();
         $gradingSystemRules = $gradeRulesRepository->getAll($current_school_session_id, $gradingSystem->id);
 
-        if(!$gradingSystemRules) {
-            return abort(404);
+        if (!$gradingSystemRules) {
+            abort(404);
         }
 
-        foreach($marks as $mark_key => $mark) {
+        foreach ($marks as $mark_key => $mark) {
             foreach ($gradingSystemRules as $key => $gradingSystemRule) {
-                if($mark->final_marks >= $gradingSystemRule->start_at && $mark->final_marks <= $gradingSystemRule->end_at) {
+                if ($mark->final_marks >= $gradingSystemRule->start_at && $mark->final_marks <= $gradingSystemRule->end_at) {
                     $marks[$mark_key]['point'] = $gradingSystemRule->point;
                     $marks[$mark_key]['grade'] = $gradingSystemRule->grade;
                 }
@@ -99,10 +99,10 @@ class MarkController extends Controller
 
         $data = [
             'current_school_session_id' => $current_school_session_id,
-            'semesters'                 => $semesters,
-            'classes'                   => $school_classes,
-            'marks'                     => $marks,
-            'grading_system_rules'      => $gradingSystemRules,
+            'semesters' => $semesters,
+            'classes' => $school_classes,
+            'marks' => $marks,
+            'grading_system_rules' => $gradingSystemRules,
         ];
 
         return view('marks.results', $data);
@@ -112,7 +112,7 @@ class MarkController extends Controller
      * Show the form for creating a new resource.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
      */
     public function create(Request $request)
     {
@@ -120,8 +120,8 @@ class MarkController extends Controller
         $section_id = $request->query('section_id');
         $course_id = $request->query('course_id');
         $semester_id = $request->query('semester_id', 0);
-        
-        try{
+
+        try {
 
             $current_school_session_id = $this->getSchoolCurrentSession();
             $this->checkIfLoggedInUserIsAssignedTeacher($request, $current_school_session_id);
@@ -129,6 +129,7 @@ class MarkController extends Controller
             $academic_setting = $this->academicSettingRepository->getAcademicSetting();
 
             $examRepository = new ExamRepository();
+            $examRepository->ensureExamsExistForClass($current_school_session_id, $semester_id, $class_id);
 
             $exams = $examRepository->getAll($current_school_session_id, $semester_id, $class_id);
 
@@ -139,23 +140,23 @@ class MarkController extends Controller
             $sectionStudents = $this->userRepository->getAllStudents($current_school_session_id, $class_id, $section_id);
 
             $final_marks_submitted = false;
-            
+
             $final_marks_submit_count = $markRepository->getFinalMarksCount($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
 
-            if($final_marks_submit_count > 0) {
+            if ($final_marks_submit_count > 0) {
                 $final_marks_submitted = true;
             }
 
             $data = [
-                'academic_setting'          => $academic_setting,
-                'exams'                     => $exams,
-                'students_with_marks'       => $studentsWithMarks,
-                'class_id'                  => $class_id,
-                'section_id'                => $section_id,
-                'course_id'                 => $course_id,
-                'semester_id'               => $semester_id,
-                'final_marks_submitted'     => $final_marks_submitted,
-                'sectionStudents'           => $sectionStudents,
+                'academic_setting' => $academic_setting,
+                'exams' => $exams,
+                'students_with_marks' => $studentsWithMarks,
+                'class_id' => $class_id,
+                'section_id' => $section_id,
+                'course_id' => $course_id,
+                'semester_id' => $semester_id,
+                'final_marks_submitted' => $final_marks_submitted,
+                'sectionStudents' => $sectionStudents,
                 'current_school_session_id' => $current_school_session_id,
             ];
 
@@ -169,7 +170,7 @@ class MarkController extends Controller
      * Show the form for creating a new resource.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function showFinalMark(Request $request)
     {
@@ -185,14 +186,14 @@ class MarkController extends Controller
         $studentsWithMarks = $studentsWithMarks->groupBy('student_id');
 
         $data = [
-            'students_with_marks'       => $studentsWithMarks,
-            'class_id'                  => $class_id,
-            'class_name'                => $request->query('class_name'),
-            'section_id'                => $section_id,
-            'section_name'              => $request->query('section_name'),
-            'course_id'                 => $course_id,
-            'course_name'               => $request->query('course_name'),
-            'semester_id'               => $semester_id,
+            'students_with_marks' => $studentsWithMarks,
+            'class_id' => $class_id,
+            'class_name' => $request->query('class_name'),
+            'section_id' => $section_id,
+            'section_name' => $request->query('section_name'),
+            'course_id' => $course_id,
+            'course_name' => $request->query('course_name'),
+            'semester_id' => $semester_id,
             'current_school_session_id' => $current_school_session_id,
         ];
 
@@ -203,19 +204,31 @@ class MarkController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
         $current_school_session_id = $this->getSchoolCurrentSession();
         $this->checkIfLoggedInUserIsAssignedTeacher($request, $current_school_session_id);
         $rows = [];
-        foreach($request->student_mark as $id => $stm) {
-            foreach($stm as $exam => $mark){
+        foreach ($request->student_mark as $id => $stm) {
+            foreach ($stm as $exam => $breakdown) {
                 $row = [];
                 $row['class_id'] = $request->class_id;
                 $row['student_id'] = $id;
-                $row['marks'] = $mark;
+
+                // Sum all dynamic marks
+                $total = array_sum($breakdown);
+                $row['marks'] = $total;
+
+                // Pack into JSON for the new column
+                $row['breakdown_marks'] = $breakdown;
+
+                // For backward compatibility, map common keys to old columns if they exist
+                $row['exam_mark'] = $breakdown['final_exam'] ?? ($breakdown['exam'] ?? 0);
+                $row['ca1_mark'] = $breakdown['ca_1'] ?? ($breakdown['ca1'] ?? 0);
+                $row['ca2_mark'] = $breakdown['ca_2'] ?? ($breakdown['ca2'] ?? 0);
+
                 $row['section_id'] = $request->section_id;
                 $row['course_id'] = $request->course_id;
                 $row['session_id'] = $request->session_id;
@@ -238,26 +251,27 @@ class MarkController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function storeFinalMark(Request $request) {
+    public function storeFinalMark(Request $request)
+    {
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $this->checkIfLoggedInUserIsAssignedTeacher($request, $current_school_session_id);
         $rows = [];
-        foreach($request->calculated_mark as $id => $cmark) {
-                $row = [];
-                $row['class_id'] = $request->class_id;
-                $row['student_id'] = $id;
-                $row['calculated_marks'] = $cmark;
-                $row['final_marks'] = $request->final_mark[$id];
-                $row['note'] = $request->note[$id];
-                $row['section_id'] = $request->section_id;
-                $row['course_id'] = $request->course_id;
-                $row['session_id'] = $request->session_id;
-                $row['semester_id'] = $request->semester_id;
+        foreach ($request->calculated_mark as $id => $cmark) {
+            $row = [];
+            $row['class_id'] = $request->class_id;
+            $row['student_id'] = $id;
+            $row['calculated_marks'] = $cmark;
+            $row['final_marks'] = $request->final_mark[$id];
+            $row['note'] = $request->note[$id];
+            $row['section_id'] = $request->section_id;
+            $row['course_id'] = $request->course_id;
+            $row['session_id'] = $request->session_id;
+            $row['semester_id'] = $request->semester_id;
 
-                $rows[] = $row;
+            $rows[] = $row;
         }
         try {
             $markRepository = new MarkRepository();
@@ -272,7 +286,7 @@ class MarkController extends Controller
     /**
      * Display the specified resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function showCourseMark(Request $request)
     {
@@ -287,27 +301,27 @@ class MarkController extends Controller
         $marks = $markRepository->getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id);
         $finalMarks = $markRepository->getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id);
 
-        if(!$finalMarks) {
-            return abort(404);
+        if (!$finalMarks) {
+            abort(404);
         }
 
         $gradingSystemRepository = new GradingSystemRepository();
         $gradingSystem = $gradingSystemRepository->getGradingSystem($session_id, $semester_id, $class_id);
 
-        if(!$gradingSystem) {
-            return abort(404);
+        if (!$gradingSystem) {
+            abort(404);
         }
 
         $gradeRulesRepository = new GradeRuleRepository();
         $gradingSystemRules = $gradeRulesRepository->getAll($session_id, $gradingSystem->id);
 
-        if(!$gradingSystemRules) {
-            return abort(404);
+        if (!$gradingSystemRules) {
+            abort(404);
         }
 
-        foreach($finalMarks as $mark_key => $mark) {
+        foreach ($finalMarks as $mark_key => $mark) {
             foreach ($gradingSystemRules as $key => $gradingSystemRule) {
-                if($mark->final_marks >= $gradingSystemRule->start_at && $mark->final_marks <= $gradingSystemRule->end_at) {
+                if ($mark->final_marks >= $gradingSystemRule->start_at && $mark->final_marks <= $gradingSystemRule->end_at) {
                     $finalMarks[$mark_key]['point'] = $gradingSystemRule->point;
                     $finalMarks[$mark_key]['grade'] = $gradingSystemRule->grade;
                 }
@@ -316,7 +330,7 @@ class MarkController extends Controller
 
         $data = [
             'marks' => $marks,
-            'final_marks'   => $finalMarks,
+            'final_marks' => $finalMarks,
             'course_name' => $course_name,
         ];
 
@@ -327,7 +341,7 @@ class MarkController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  \App\Models\Mark  $mark
-     * @return \Illuminate\Http\Response
+     * @return void
      */
     public function edit(Mark $mark)
     {
@@ -339,7 +353,7 @@ class MarkController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Mark  $mark
-     * @return \Illuminate\Http\Response
+     * @return void
      */
     public function update(Request $request, Mark $mark)
     {
@@ -350,7 +364,7 @@ class MarkController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Mark  $mark
-     * @return \Illuminate\Http\Response
+     * @return void
      */
     public function destroy(Mark $mark)
     {
