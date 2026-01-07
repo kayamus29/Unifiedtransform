@@ -61,3 +61,79 @@ This document lists all tasks requested and completed today in the order they we
     *   Refined `HomeController` logic for staff absences: Fixed a query typo and ensured both `staff` and `librarian` roles are correctly tracked.
     *   Verified that Teachers and Exams are correctly populated in the database.
     *   Ensured dashboard absence lists correctly reflect "Today's" data and respect the "Monday-Friday" school schedule.
+
+
+Activity Log - January 6, 2026
+Dynamic Mark Breakdown Customization
+Database Changes
+Created migration 
+2026_01_06_132625_add_dynamic_breakdown_to_tables.php
+Added marks_breakdown (JSON) to academic_settings table
+Added marks_breakdown (JSON) to exam_rules table
+Added breakdown_marks (JSON) to marks table
+Executed migration successfully
+Model Updates
+Updated 
+AcademicSetting
+, 
+ExamRule
+, 
+Mark
+ models with JSON casting
+Added 
+examRule()
+ relationship to 
+Exam
+ model
+Backend Implementation
+Refactored AcademicSettingController::updateDefaultWeights() to handle dynamic arrays
+Updated ExamRuleController::store() and 
+update()
+ for dynamic components
+Modified MarkController::store() to process and save dynamic marks as JSON
+Enhanced ExamRepository::ensureExamsExistForClass() to use dynamic breakdowns
+Updated MarkRepository::create() to handle breakdown_marks field
+Updated 
+ExamRuleStoreRequest
+ validation for dynamic inputs
+Frontend Changes
+Refactored 
+academics/settings.blade.php
+ with dynamic repeater UI
+Updated 
+marks/create.blade.php
+ to generate dynamic columns
+Refactored 
+exams/add-rule.blade.php
+ with repeater
+Updated 
+exams/edit-rule.blade.php
+ with dynamic loading
+Added JavaScript for add/remove row functionality in all forms
+Code Quality
+Fixed all PHPDoc return type warnings in 
+ExamRuleController
+Maintained backward compatibility with legacy mark columns
+Status
+✅ All implementation complete ⏳ Browser verification pending (rate limit encountered)
+
+## 9. Secure User Management & RBAC System (Jan 7, 2026)
+- **Goal:** Implement strict Role-Based Access Control and secure data scoping.
+- **Completed:**
+    - **Single User Table:** Standardized user management using `users` table and `spatie/laravel-permission`.
+    - **Permission Matrix:** Defined strict Granular Permissions for Admin, Teacher, Accountant, Staff, Student, and Parent.
+    - **RoleSeeder:** Created comprehensive seeder to migrate legacy `role` strings to Spatie Roles and assign permissions.
+    - **Data Scoping:** Enforced strict data ownership in `AttendanceController`, `MarkController`, and `CourseController` using `assigned_teachers` table. Teachers can only access their assigned classes/sessions.
+    - **Admin Bypass:** Implemented `Gate::before` in `AuthServiceProvider` for streamlined Admin access.
+
+## 10. Teacher Assignment Enhancement (Jan 7, 2026)
+- **Goal:** Allow Admins to assign Class Teachers and Course Teachers directly from the `/classes` page.
+- **Completed:**
+    - **Schema Change:** Modified `assigned_teachers` table to allow nullable `course_id` and `section_id` to support "Class Teacher" assignments.
+    - **Frontend:** Updated `/classes` index view with a "Class Teacher" column and an "Assign Teachers" Modal.
+    - **Backend:** Implemented `bulkAssign` logic in `AssignedTeacherController` using safely scoped `updateOrCreate`.
+    - **Route Fix:** Corrected route naming conventions for bulk assignment.
+
+## 11. Staff Check-in Fix (Jan 7, 2026)
+- **Problem:** Teachers could not see the Check-in link.
+- **Fix:** Moved "Staff Attendance" link in sidebar to be visible for all users with `staff check-in` permission (Teachers, Staff, Admin) instead of being nested in Admin-only menu.

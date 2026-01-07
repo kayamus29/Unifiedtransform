@@ -53,4 +53,12 @@ class SchoolClass extends Model
     {
         return $this->hasMany(ClassFee::class, 'class_id');
     }
+
+    /**
+     * Get the assigned teachers for the class.
+     */
+    public function assignedTeachers()
+    {
+        return $this->hasMany(AssignedTeacher::class, 'class_id');
+    }
 }

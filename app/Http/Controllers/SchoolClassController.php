@@ -7,6 +7,7 @@ use App\Models\SchoolClass;
 use Illuminate\Http\Request;
 use App\Interfaces\SchoolClassInterface;
 use App\Interfaces\SchoolSessionInterface;
+use App\Interfaces\UserInterface;
 use App\Http\Requests\SchoolClassStoreRequest;
 use App\Traits\SchoolSession;
 
@@ -15,18 +16,21 @@ class SchoolClassController extends Controller
     use SchoolSession;
     protected $schoolClassRepository;
     protected $schoolSessionRepository;
+    protected $userRepository;
 
     /**
-    * Create a new Controller instance
-    * 
-    * @param SchoolClassInterface $schoolClassRepository
-    * @return void
-    */
-    public function __construct(SchoolSessionInterface $schoolSessionRepository, SchoolClassInterface $schoolClassRepository) {
+     * Create a new Controller instance
+     * 
+     * @param SchoolClassInterface $schoolClassRepository
+     * @return void
+     */
+    public function __construct(SchoolSessionInterface $schoolSessionRepository, SchoolClassInterface $schoolClassRepository, UserInterface $userRepository)
+    {
         $this->middleware(['can:view classes']);
 
         $this->schoolSessionRepository = $schoolSessionRepository;
         $this->schoolClassRepository = $schoolClassRepository;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -39,6 +43,7 @@ class SchoolClassController extends Controller
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $data = $this->schoolClassRepository->getClassesAndSections($current_school_session_id);
+        $data['teachers'] = $this->userRepository->getAllTeachers();
 
         return view('classes.index', $data);
     }
@@ -95,8 +100,8 @@ class SchoolClassController extends Controller
 
         $data = [
             'current_school_session_id' => $current_school_session_id,
-            'class_id'                  => $class_id,
-            'schoolClass'               => $schoolClass,
+            'class_id' => $class_id,
+            'schoolClass' => $schoolClass,
         ];
         return view('classes.edit', $data);
     }

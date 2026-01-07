@@ -6,6 +6,13 @@
                         class="ms-auto bi bi-grid"></i> <span
                         class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">{{ __('Dashboard') }}</span></a>
             </li>
+            @can('staff check-in')
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('staff.attendance.index') ? 'active' : '' }}" href="{{route('staff.attendance.index')}}">
+                    <i class="bi bi-geo-alt"></i> <span
+                        class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Check-In / Out</span></a>
+            </li>
+            @endcan
             {{-- @if (Auth::user()->role == "teacher")
             <li class="nav-item">
                 <a type="button" href="{{url('attendances')}}"
@@ -243,8 +250,9 @@
                         <li class="nav-item w-100" {{ request()->routeIs('staff.create') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                 href="{{route('staff.create')}}"><i class="bi bi-person-plus me-2"></i> Add
                                 Staff</a></li>
-                        <li class="nav-item w-100" {{ request()->routeIs('staff.attendance.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
-                                href="{{route('staff.attendance.index')}}"><i class="bi bi-calendar-check me-2"></i> Attendance</a></li>
+                        <li class="nav-item w-100" {{ request()->routeIs('staff.create') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
+                                href="{{route('staff.create')}}"><i class="bi bi-person-plus me-2"></i> Add
+                                Staff</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

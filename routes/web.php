@@ -73,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('teacher/create', [UserController::class, 'storeTeacher'])->name('teacher.create');
         Route::post('teacher/update', [UserController::class, 'updateTeacher'])->name('teacher.update');
         Route::post('teacher/assign', [AssignedTeacherController::class, 'store'])->name('teacher.assign');
+        Route::post('teacher/assign/bulk', [AssignedTeacherController::class, 'bulkAssign'])->name('teacher.assign.bulk');
 
         // Student
         Route::post('student/create', [UserController::class, 'storeStudent'])->name('student.create');

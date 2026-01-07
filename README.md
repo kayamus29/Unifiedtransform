@@ -135,6 +135,34 @@ With the improved Docker setup, you will get:
     - Email: admin@ut.com
     - Password: password
 
+### Without Docker (Local Development):
+
+If you prefer to run the application directly on your local machine:
+
+1. Clone or download the repository.
+2. Create **purify** folder in `storage/app/` directory.
+3. Run `cp .env.example .env` and configure your database settings.
+4. Install dependencies:
+    ```sh
+    composer install
+    npm install
+    ```
+5. Generate application key:
+    ```sh
+    php artisan key:generate
+    ```
+6. Run migrations and seed the database:
+    ```sh
+    php artisan migrate:fresh --seed
+    ```
+7. Start the development server:
+    ```sh
+    php artisan serve
+    ```
+8. Visit **http://127.0.0.1:8000**. Admin login credentials:
+    - Email: admin@ut.com
+    - Password: password
+
 ## Steps to follow:
 Please carefully follow the steps to setup the school.
 

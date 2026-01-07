@@ -127,13 +127,116 @@
                                                 </div>
                                             </div>
                                         </div>
+                                            <div class="mt-2 mb-2">
+                                                <strong>Class Teacher:</strong>
+                                                @php
+                                                    $classTeacher = $school_class->assignedTeachers->whereNull('course_id')->first();
+                                                @endphp
+                                                <span class="text-primary">{{ $classTeacher ? $classTeacher->teacher->first_name . ' ' . $classTeacher->teacher->last_name : 'Not Assigned' }}</span>
+                                            </div>
+                                        </div>
                                         <div class="card-footer bg-transparent d-flex justify-content-between">
                                             @isset($total_sections)
                                                 <span>Total Sections: {{$total_sections}}</span>
                                             @endisset
-                                            @can('edit classes')
-                                            <span><a href="{{route('class.edit', ['id' => $school_class->id])}}" class="btn btn-sm btn-outline-primary" role="button"><i class="bi bi-pencil"></i> Edit Class</a></span>
-                                            @endcan
+                                            <div>
+                                                @can('assign teachers') 
+                                                    {{-- Assuming a permission exists, or use 'edit classes' --}}
+                                                    <button type="button" class="btn btn-sm btn-outline-dark me-2" data-bs-toggle="modal" data-bs-target="#assignTeacherModal{{$school_class->id}}">
+                                                        <i class="bi bi-person-badge"></i> Assign Teachers
+                                                    </button>
+                                                @endcan
+                                                @can('edit classes')
+                                                <a href="{{route('class.edit', ['id' => $school_class->id])}}" class="btn btn-sm btn-outline-primary" role="button"><i class="bi bi-pencil"></i> Edit Class</a>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Assign Teacher Modal -->
+                                <div class="modal fade" id="assignTeacherModal{{$school_class->id}}" tabindex="-1" aria-labelledby="assignTeacherModalLabel{{$school_class->id}}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="assignTeacherModalLabel{{$school_class->id}}">Assign Teachers - {{$school_class->class_name}}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{route('school.teacher.assign.bulk')}}" method="POST">
+                                                @csrf
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="class_id" value="{{$school_class->id}}">
+                                                    <input type="hidden" name="session_id" value="{{$school_class->session_id}}"> 
+                                                    
+                                                    <div class="mb-4">
+                                                        <h6 class="border-bottom pb-2">Class Teacher</h6>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small">Select Class Teacher</label>
+                                                            <select class="form-select form-select-sm" name="class_teacher_id">
+                                                                <option value="">-- Select Teacher --</option>
+                                                                @foreach($teachers as $teacher)
+                                                                    <option value="{{$teacher->id}}" 
+                                                                        @if($classTeacher && $classTeacher->teacher_id == $teacher->id) selected @endif>
+                                                                        {{$teacher->first_name}} {{$teacher->last_name}}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-4">
+                                                        <h6 class="border-bottom pb-2">Course Teachers</h6>
+                                                        @if($school_class->courses->count() > 0)
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm table-bordered">
+                                                                    <thead class="table-light">
+                                                                        <tr>
+                                                                            <th>Course</th>
+                                                                            <th>Current Teacher</th>
+                                                                            <th>Assign New</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach($school_class->courses as $course)
+                                                                            @php
+                                                                                // Find existing assignment for this course
+                                                                                $courseAssignment = $school_class->assignedTeachers->where('course_id', $course->id)->first();
+                                                                            @endphp
+                                                                            <tr>
+                                                                                <td>{{$course->course_name}} <small class="text-muted">({{$course->course_type}})</small></td>
+                                                                                <td>
+                                                                                    @if($courseAssignment)
+                                                                                        <span class="badge bg-success">{{$courseAssignment->teacher->first_name}} {{$courseAssignment->teacher->last_name}}</span>
+                                                                                    @else
+                                                                                        <span class="badge bg-secondary">Unassigned</span>
+                                                                                    @endif
+                                                                                </td>
+                                                                                <td>
+                                                                                    <select class="form-select form-select-sm" name="course_teachers[{{$course->id}}]">
+                                                                                        <option value="">-- Select --</option>
+                                                                                        @foreach($teachers as $teacher)
+                                                                                            <option value="{{$teacher->id}}"
+                                                                                                @if($courseAssignment && $courseAssignment->teacher_id == $teacher->id) selected @endif>
+                                                                                                {{$teacher->first_name}} {{$teacher->last_name}}
+                                                                                            </option>
+                                                                                        @endforeach
+                                                                                    </select>
+                                                                                </td>
+                                                                            </tr>
+                                                                        @endforeach
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        @else
+                                                            <p class="text-muted">No courses found for this class.</p>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>

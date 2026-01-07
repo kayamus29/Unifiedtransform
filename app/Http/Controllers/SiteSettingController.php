@@ -5,17 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class SiteSettingController extends Controller
 {
     public function __construct()
     {
-        // $this->middleware('auth'); // Already applied in web.php group
-        // Add permission check if needed, e.g., $this->middleware('can:manage site settings');
+        // 
     }
 
     public function edit()
     {
+        if (!Auth::user()->hasRole('Admin')) {
+            abort(403, 'Only Admins can manage site settings.');
+        }
+
         $setting = SiteSetting::first();
         if (!$setting) {
             $setting = SiteSetting::create([
@@ -29,6 +33,10 @@ class SiteSettingController extends Controller
 
     public function update(Request $request)
     {
+        if (!Auth::user()->hasRole('Admin')) {
+            abort(403, 'Only Admins can manage site settings.');
+        }
+
         $request->validate([
             'school_name' => 'required|string|max:255',
             'school_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
