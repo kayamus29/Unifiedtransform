@@ -57,6 +57,7 @@
                                         <option value="admin" {{ old('role', $staff->role) == 'admin' ? 'selected' : '' }}>
                                             Administrator</option>
                                         <option value="teacher" {{ old('role', $staff->role) == 'teacher' ? 'selected' : '' }}>Teacher</option>
+                                        <option value="accountant" {{ old('role', $staff->role) == 'accountant' ? 'selected' : '' }}>Accountant</option>
                                         <option value="librarian" {{ old('role', $staff->role) == 'librarian' ? 'selected' : '' }}>Librarian</option>
                                         <option value="staff" {{ old('role', $staff->role) == 'staff' ? 'selected' : '' }}>
                                             General Staff</option>

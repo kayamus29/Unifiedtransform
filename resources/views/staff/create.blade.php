@@ -59,6 +59,9 @@
                                         </option>
                                         <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>Teacher
                                         </option>
+                                        <option value="accountant" {{ old('role') == 'accountant' ? 'selected' : '' }}>
+                                            Accountant
+                                        </option>
                                         <option value="librarian" {{ old('role') == 'librarian' ? 'selected' : '' }}>Librarian
                                         </option>
                                         <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>General Staff
