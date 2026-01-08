@@ -5,9 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\StudentParentInfo;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class SyncParentsCommand extends Command
@@ -22,11 +20,6 @@ class SyncParentsCommand extends Command
         'students_linked' => 0,
         'errors' => []
     ];
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     public function handle()
     {
@@ -54,50 +47,46 @@ class SyncParentsCommand extends Command
             try {
                 DB::beginTransaction();
 
-                // 2. Find or Create User (Idempotent)
+                // Find or Create User (Idempotent)
                 $parentUser = User::where('email', $email)->first();
 
                 if (!$parentUser) {
-                    // Create new Parent User
+                    // Get name from first record
                     $parentName = $records->first()->father_name ?: ($records->first()->mother_name ?: 'Parent');
-
-                    // Split name if possible
                     $parts = explode(' ', trim($parentName), 2);
                     $firstName = $parts[0];
                     $lastName = $parts[1] ?? 'Guardian';
 
-                    $parentUser = User::create([
-                        'first_name' => $firstName,
-                        'last_name' => $lastName,
-                        'email' => $email,
-                        'password' => Hash::make('password'), // Default password
-                        'role' => 'parent', // Legacy role column (lowercase to match existing)
-                        // Required fields with sensible defaults
-                        'gender' => 'Other',
-                        'nationality' => 'N/A',
-                        'phone' => $records->first()->guardian_phone ?? 'N/A',
-                        'address' => $records->first()->parent_address ?? 'N/A',
-                        'city' => 'N/A',
-                        'zip' => 'N/A',
-                    ]);
+                    // Create with ONLY the fields that exist in the database
+                    $parentUser = new User();
+                    $parentUser->first_name = $firstName;
+                    $parentUser->last_name = $lastName;
+                    $parentUser->email = $email;
+                    $parentUser->password = Hash::make('password');
+                    $parentUser->role = 'parent';
+                    $parentUser->gender = 'Other';
+                    $parentUser->nationality = 'N/A';
+                    $parentUser->phone = $records->first()->guardian_phone ?? 'N/A';
+                    $parentUser->address = $records->first()->parent_address ?? 'N/A';
+                    $parentUser->city = 'N/A';
+                    $parentUser->zip = 'N/A';
+                    $parentUser->save();
 
                     // Assign Spatie role
-                    if (!$parentUser->hasRole('Parent')) {
-                        $parentUser->assignRole('Parent');
-                    }
+                    $parentUser->assignRole('Parent');
 
                     $this->stats['parents_created']++;
-                    $this->info("  ✓ Created new parent user");
+                    $this->info("  ✓ Created new parent user (ID: {$parentUser->id})");
                 } else {
                     // Ensure role is set
                     if (!$parentUser->hasRole('Parent')) {
                         $parentUser->assignRole('Parent');
                     }
                     $this->stats['parents_reused']++;
-                    $this->info("  ✓ Reused existing parent user");
+                    $this->info("  ✓ Reused existing parent user (ID: {$parentUser->id})");
                 }
 
-                // 3. Link all children records to this parent_user_id (Idempotent)
+                // Link all children records to this parent_user_id (Idempotent)
                 foreach ($records as $record) {
                     if ($record->parent_user_id !== $parentUser->id) {
                         $record->parent_user_id = $parentUser->id;
@@ -111,11 +100,11 @@ class SyncParentsCommand extends Command
 
             } catch (\Exception $e) {
                 DB::rollBack();
-                $errorMsg = "Failed: {$e->getMessage()}";
-                $this->error("  ✗ $errorMsg");
+                $errorMsg = $e->getMessage();
+                $this->error("  ✗ Failed: $errorMsg");
                 $this->stats['errors'][] = [
                     'email' => $email,
-                    'error' => $e->getMessage()
+                    'error' => $errorMsg
                 ];
             }
 
@@ -124,7 +113,7 @@ class SyncParentsCommand extends Command
 
         $this->displaySummary();
 
-        return $this->stats['errors'] ? 1 : 0;
+        return count($this->stats['errors']) > 0 ? 1 : 0;
     }
 
     private function normalizeEmails()
