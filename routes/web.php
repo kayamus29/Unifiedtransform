@@ -233,4 +233,22 @@ Route::middleware(['auth'])->group(function () {
     // Update password
     Route::get('password/edit', [UpdatePasswordController::class, 'edit'])->name('password.edit');
     Route::post('password/edit', [UpdatePasswordController::class, 'update'])->name('password.update');
+
+    // ===========================================
+    // PORTALS (New Implementation)
+    // ===========================================
+
+    // Parent Portal
+    Route::prefix('portal/parent')->name('parent.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ParentPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/child/{student_id}', [App\Http\Controllers\ParentPortalController::class, 'childDashboard'])->name('child.dashboard');
+    });
+
+    // Student Portal
+    Route::prefix('portal/student')->name('student.')->group(function () {
+        Route::get('/', [App\Http\Controllers\StudentPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/attendance', [App\Http\Controllers\StudentPortalController::class, 'attendance'])->name('attendance');
+        Route::get('/marks', [App\Http\Controllers\StudentPortalController::class, 'marks'])->name('marks');
+        Route::get('/timetable', [App\Http\Controllers\StudentPortalController::class, 'timetable'])->name('timetable');
+    });
 });

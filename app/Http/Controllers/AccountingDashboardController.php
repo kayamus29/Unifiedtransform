@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class AccountingDashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:Accountant|Admin']);
+    }
+
     public function index()
     {
         $session = SchoolSession::latest()->first();
