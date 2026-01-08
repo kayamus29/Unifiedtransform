@@ -238,12 +238,6 @@ Route::middleware(['auth'])->group(function () {
     // PORTALS (New Implementation)
     // ===========================================
 
-    // Parent Portal
-    Route::prefix('portal/parent')->name('parent.')->group(function () {
-        Route::get('/', [App\Http\Controllers\ParentPortalController::class, 'dashboard'])->name('dashboard');
-        Route::get('/child/{student_id}', [App\Http\Controllers\ParentPortalController::class, 'childDashboard'])->name('child.dashboard');
-    });
-
     // Student Portal
     Route::prefix('portal/student')->name('student.')->group(function () {
         Route::get('/', [App\Http\Controllers\StudentPortalController::class, 'dashboard'])->name('dashboard');
