@@ -13,7 +13,7 @@ class AttendanceStoreRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->can('take attendances');
+        return auth()->user()->can('take attendance');
     }
 
     /**
@@ -24,13 +24,13 @@ class AttendanceStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'course_id'             => 'integer',
-            'class_id'              => 'integer',
-            'section_id'            => 'integer',
-            'student_ids'           => 'required|array|min:1',
-            'student_ids.*'         => 'integer',
-            'status'                => 'required|array|min:1',
-            'session_id'            => 'required',
+            'course_id' => 'integer',
+            'class_id' => 'integer',
+            'section_id' => 'integer',
+            'student_ids' => 'required|array|min:1',
+            'student_ids.*' => 'integer',
+            'status' => 'required|array|min:1',
+            'session_id' => 'required',
         ];
     }
 }

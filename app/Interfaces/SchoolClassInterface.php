@@ -2,7 +2,8 @@
 
 namespace App\Interfaces;
 
-interface SchoolClassInterface {
+interface SchoolClassInterface
+{
     public function create($request);
 
     public function getAllBySession($session_id);
@@ -11,7 +12,7 @@ interface SchoolClassInterface {
 
     public function getAllWithCoursesBySession($session_id);
 
-    public function getClassesAndSections($session_id);
+    public function getClassesAndSections($session_id, $teacher_id = null);
 
     public function findById($class_id);
 

@@ -41,7 +41,24 @@
                             class="ms-auto d-inline d-sm-none d-md-none d-xl-inline">{{ $classCount }}</span></a>
                 </li>
             @endcan
-            @if(Auth::user()->role != "student")
+            @if(Auth::user()->hasRole('Teacher'))
+                <li class="nav-item">
+                    <a type="button" href="#student-submenu" data-bs-toggle="collapse"
+                        class="d-flex nav-link {{ request()->is('students*') ? 'active' : '' }}"><i
+                            class="bi bi-people-fill"></i> <span
+                            class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Students</span>
+                        <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                    </a>
+                    <ul class="nav collapse {{ request()->is('students*') ? 'show' : 'hide' }} bg-white"
+                        id="student-submenu">
+                        <li class="nav-item w-100" {{ request()->routeIs('student.list.show') ? 'style="font-weight:bold;"' : '' }}>
+                            <a class="nav-link text-primary" href="{{route('student.list.show')}}">
+                                <i class="bi bi-person-badge-fill me-2"></i> My Class Students
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @elseif(Auth::user()->hasAnyRole(['Admin', 'Accountant']))
                 <li class="nav-item">
                     <a type="button" href="#student-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('students*') ? 'active' : '' }}"><i
@@ -53,13 +70,16 @@
                         id="student-submenu">
                         <li class="nav-item w-100" {{ request()->routeIs('student.list.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link" href="{{route('student.list.show')}}"><i
                                     class="bi bi-person-video2 me-2"></i> View Students</a></li>
-                        @if (!session()->has('browse_session_id') && Auth::user()->role == "admin")
+                        @if (!session()->has('browse_session_id') && Auth::user()->hasRole('Admin'))
                             <li class="nav-item w-100" {{ request()->routeIs('student.create.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                     href="{{route('student.create.show')}}"><i class="bi bi-person-plus me-2"></i> Add
                                     Student</a></li>
                         @endif
                     </ul>
                 </li>
+            @endif
+
+            @if(Auth::user()->hasAnyRole(['Admin', 'Accountant']))
                 <li class="nav-item">
                     <a type="button" href="#teacher-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('teachers*') ? 'active' : '' }}"><i
@@ -71,7 +91,7 @@
                         id="teacher-submenu">
                         <li class="nav-item w-100" {{ request()->routeIs('teacher.list.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link" href="{{route('teacher.list.show')}}"><i
                                     class="bi bi-person-video2 me-2"></i> View Teachers</a></li>
-                        @if (!session()->has('browse_session_id') && Auth::user()->role == "admin")
+                        @if (!session()->has('browse_session_id') && Auth::user()->hasRole('Admin'))
                             <li class="nav-item w-100" {{ request()->routeIs('teacher.create.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                     href="{{route('teacher.create.show')}}"><i class="bi bi-person-plus me-2"></i> Add
                                     Teacher</a></li>
@@ -79,15 +99,15 @@
                     </ul>
                 </li>
             @endif
-            @if(Auth::user()->role == "teacher")
+            @if(Auth::user()->hasRole('Teacher'))
                 <li class="nav-item">
                     <a class="nav-link {{ (request()->is('courses/teacher*') || request()->is('courses/assignments*')) ? 'active' : '' }}"
                         href="{{route('course.teacher.list.show', ['teacher_id' => Auth::user()->id])}}"><i
-                            class="bi bi-journal-medical"></i> <span
+                            class="bi bi-journal-check"></i> <span
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">My Courses</span></a>
                 </li>
             @endif
-            @if(Auth::user()->role == "student")
+            @if(Auth::user()->hasRole('Student'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('student.attendance.show') ? 'active' : '' }}"
                                 href="{{route('student.attendance.show', ['id' => Auth::user()->id])}}"><i
@@ -131,7 +151,7 @@
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
                         </li>
             @endif
-            @if(Auth::user()->role != "student")
+            @if(!Auth::user()->hasRole('Student'))
                 <li class="nav-item border-bottom">
                     <a type="button" href="#exam-grade-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('exams*') ? 'active' : '' }}"><i
@@ -144,11 +164,11 @@
                         <li class="nav-item w-100" {{ request()->routeIs('exam.list.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link" href="{{route('exam.list.show')}}"><i
                                     class="bi bi-file-text me-2"></i>
                                 View Exams</a></li>
-                        @if (Auth::user()->role == "admin" || Auth::user()->role == "teacher")
+                        @if (Auth::user()->hasAnyRole(['Admin', 'Teacher']))
                             <li class="nav-item w-100" {{ request()->routeIs('exam.create.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link" href="{{route('exam.create.show')}}"><i
                                         class="bi bi-file-plus me-2"></i> Create Exams</a></li>
                         @endif
-                        @if (Auth::user()->role == "admin")
+                        @if (Auth::user()->hasRole('Admin'))
                             <li class="nav-item w-100" {{ request()->routeIs('exam.grade.system.create') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                     href="{{route('exam.grade.system.create')}}"><i class="bi bi-file-plus me-2"></i> Add Grade
                                     Systems</a></li>
@@ -171,7 +191,7 @@
                     </ul>
                 </li> --}}
             @endif
-            @if (Auth::user()->role == "admin")
+            @if (Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('notice*') ? 'active' : '' }}" href="{{route('notice.create')}}"><i
                             class="bi bi-megaphone"></i> <span
@@ -193,21 +213,21 @@
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
                 </li>
             @endif
-            @if (Auth::user()->role == "admin")
+            @if (Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('academics*') ? 'active' : '' }}"
                         href="{{url('academics/settings')}}"><i class="bi bi-tools"></i> <span
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Academic</span></a>
                 </li>
             @endif
-            @if (Auth::user()->role == "admin")
+            @if (Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('promotions*') ? 'active' : '' }}"
                         href="{{route('promotions.index')}}"><i class="bi bi-sort-numeric-up-alt"></i> <span
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Promotion</span></a>
                 </li>
             @endif
-            @if (Auth::user()->role == "admin")
+            @if (Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
                     <a type="button" href="#accounting-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('accounting*') ? 'active' : '' }}"><i
@@ -226,6 +246,8 @@
                         <li class="nav-item w-100" {{ request()->routeIs('accounting.fees.class.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                 href="{{route('accounting.fees.class.index')}}"><i class="bi bi-diagram-3 me-2"></i> Assign
                                 Fees</a></li>
+                            <li class="nav-item w-100" {{ request()->is('accounting/fees/student*') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
+                                    href="{{route('accounting.fees.student.index')}}"><i class="bi bi-plus-square me-2"></i> Addons</a></li>
                         <li class="nav-item w-100" {{ request()->routeIs('accounting.payments.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                 href="{{route('accounting.payments.index')}}"><i class="bi bi-currency-dollar me-2"></i>
                                 Collect Fees</a></li>
@@ -235,7 +257,7 @@
                     </ul>
                 </li>
             @endif
-            @if (Auth::user()->role == "admin")
+            @if (Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
                     <a type="button" href="#staff-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('staff*') ? 'active' : '' }}"><i
@@ -250,11 +272,15 @@
                         <li class="nav-item w-100" {{ request()->routeIs('staff.create') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                 href="{{route('staff.create')}}"><i class="bi bi-person-plus me-2"></i> Add
                                 Staff</a></li>
-                        <li class="nav-item w-100" {{ request()->routeIs('staff.create') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
-                                href="{{route('staff.create')}}"><i class="bi bi-person-plus me-2"></i> Add
-                                Staff</a></li>
                     </ul>
                 </li>
+                @can('view audit logs')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('audit.index') ? 'active' : '' }}" href="{{route('audit.index')}}"><i
+                            class="bi bi-clock-history"></i> <span
+                            class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Audit Logs</span></a>
+                </li>
+                @endcan
                 <li class="nav-item">
                     <a class="nav-link disabled" href="#" aria-disabled="true"><i class="bi bi-journals"></i> <span
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Library</span></a>

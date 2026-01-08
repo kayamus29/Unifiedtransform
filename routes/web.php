@@ -26,6 +26,7 @@ use App\Http\Controllers\AssignedTeacherController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StaffAttendanceController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
 
 /*
@@ -160,6 +161,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/accounting/fees/assign', [App\Http\Controllers\ClassFeeController::class, 'store'])->name('accounting.fees.class.store');
     Route::delete('/accounting/fees/assign/{id}', [App\Http\Controllers\ClassFeeController::class, 'destroy'])->name('accounting.fees.class.destroy');
 
+    // Student Fees
+    Route::get('/accounting/fees/student', [App\Http\Controllers\StudentFeeController::class, 'index'])->name('accounting.fees.student.index');
+    Route::post('/accounting/fees/student', [App\Http\Controllers\StudentFeeController::class, 'store'])->name('accounting.fees.student.store');
+    Route::delete('/accounting/fees/student/{id}', [App\Http\Controllers\StudentFeeController::class, 'destroy'])->name('accounting.fees.student.destroy');
+
     // Payments
     Route::get('/accounting/payments', [App\Http\Controllers\PaymentController::class, 'index'])->name('accounting.payments.index');
     Route::get('/accounting/payments/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('accounting.payments.create');
@@ -184,6 +190,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/staff/attendance', [StaffAttendanceController::class, 'index'])->name('staff.attendance.index');
     Route::post('/staff/attendance/check-in', [StaffAttendanceController::class, 'checkIn'])->name('staff.attendance.checkin');
     Route::post('/staff/attendance/check-out', [StaffAttendanceController::class, 'checkOut'])->name('staff.attendance.checkout');
+
+    // Audit Logs
+    Route::get('/audit/logs', [AuditLogController::class, 'index'])->name('audit.index');
+    Route::get('/audit/logs/{id}', [AuditLogController::class, 'show'])->name('audit.show');
 
     // Academic settings
     Route::get('/academics/settings', [AcademicSettingController::class, 'index']);

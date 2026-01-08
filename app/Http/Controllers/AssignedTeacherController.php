@@ -32,18 +32,8 @@ class AssignedTeacherController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @param  CourseStoreRequest $request
-     * @return \Illuminate\Http\Response
+     * @param  Request $request
+     * @return \Illuminate\Contracts\View\View
      */
     public function getTeacherCourses(Request $request)
     {
@@ -76,20 +66,10 @@ class AssignedTeacherController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  TeacherAssignRequest  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(TeacherAssignRequest $request)
     {
@@ -108,55 +88,71 @@ class AssignedTeacherController extends Controller
         $request->validate([
             'class_id' => 'required|exists:school_classes,id',
             'session_id' => 'required|exists:school_sessions,id',
-            'class_teacher_id' => 'nullable|exists:users,id',
+            'section_teachers' => 'nullable|array',
+            'section_teachers.*' => 'nullable|exists:users,id',
             'course_teachers' => 'nullable|array',
-            'course_teachers.*' => 'nullable|exists:users,id',
+            'course_teachers.*' => 'nullable|array',
         ]);
 
         try {
             $current_school_session_id = $this->getSchoolCurrentSession();
-            // Default active semester (or passed in request if needed, assuming current session active semester)
-            // For simplicity and matching existing logic, we might need a semester.
-            // But Class Teacher might be per Session.
-            // Existing schema has semester_id as NOT NULL? No, it wasn't made nullable.
-            // So we MUST have a semester.
-            // Let's assume generic "First Semester" or active one if not provided?
-            // Existing logic in Repository fetches first semester if 0.
+            $semester_id = $this->semesterRepository->getAll($current_school_session_id)->first()->id ?? 1;
 
-            $semester_id = $this->semesterRepository->getAll($current_school_session_id)->first()->id ?? 1; // Fallback or strict
-
-            // 1. Assign Class Teacher (Course NULL, Section NULL)
-            if ($request->has('class_teacher_id')) {
-                \App\Models\AssignedTeacher::updateOrCreate(
-                    [
-                        'class_id' => $request->class_id,
-                        'session_id' => $request->session_id,
-                        'course_id' => null,
-                        'section_id' => null,
-                        'semester_id' => $semester_id
-                    ],
-                    [
-                        'teacher_id' => $request->class_teacher_id
-                    ]
-                );
-            }
-
-            // 2. Assign Course Teachers
-            if ($request->has('course_teachers')) {
-                foreach ($request->course_teachers as $course_id => $teacher_id) {
+            // 1. Assign Section Teachers (Course NULL)
+            if ($request->has('section_teachers')) {
+                foreach ($request->section_teachers as $section_id => $teacher_id) {
                     if ($teacher_id) {
                         \App\Models\AssignedTeacher::updateOrCreate(
                             [
                                 'class_id' => $request->class_id,
                                 'session_id' => $request->session_id,
-                                'course_id' => $course_id,
-                                'section_id' => null, // Assuming general course assignment for class
+                                'section_id' => $section_id,
+                                'course_id' => null,
                                 'semester_id' => $semester_id
                             ],
                             [
                                 'teacher_id' => $teacher_id
                             ]
                         );
+                    } else {
+                        // Remove assignment if empty? (Optional, but usually expected)
+                        \App\Models\AssignedTeacher::where([
+                            'class_id' => $request->class_id,
+                            'session_id' => $request->session_id,
+                            'section_id' => $section_id,
+                            'course_id' => null,
+                            'semester_id' => $semester_id
+                        ])->delete();
+                    }
+                }
+            }
+
+            // 2. Assign Course Teachers per Section
+            if ($request->has('course_teachers')) {
+                foreach ($request->course_teachers as $section_id => $courses) {
+                    foreach ($courses as $course_id => $teacher_id) {
+                        if ($teacher_id) {
+                            \App\Models\AssignedTeacher::updateOrCreate(
+                                [
+                                    'class_id' => $request->class_id,
+                                    'session_id' => $request->session_id,
+                                    'section_id' => $section_id,
+                                    'course_id' => $course_id,
+                                    'semester_id' => $semester_id
+                                ],
+                                [
+                                    'teacher_id' => $teacher_id
+                                ]
+                            );
+                        } else {
+                            \App\Models\AssignedTeacher::where([
+                                'class_id' => $request->class_id,
+                                'session_id' => $request->session_id,
+                                'section_id' => $section_id,
+                                'course_id' => $course_id,
+                                'semester_id' => $semester_id
+                            ])->delete();
+                        }
                     }
                 }
             }

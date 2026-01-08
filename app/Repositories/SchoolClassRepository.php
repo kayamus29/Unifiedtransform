@@ -34,13 +34,32 @@ class SchoolClassRepository implements SchoolClassInterface
         return SchoolClass::with(['courses', 'syllabi', 'assignedTeachers.teacher'])->where('session_id', $session_id)->get();
     }
 
-    public function getClassesAndSections($session_id)
+    public function getClassesAndSections($session_id, $teacher_id = null)
     {
         $school_classes = $this->getAllWithCoursesBySession($session_id);
 
         $sectionRepository = new SectionRepository();
-
         $school_sections = $sectionRepository->getAllBySession($session_id);
+
+        if ($teacher_id) {
+            // Get all unique class and section IDs the teacher is assigned to
+            $assignments = AssignedTeacher::where('teacher_id', $teacher_id)
+                ->where('session_id', $session_id)
+                ->get();
+
+            $assignedClassIds = $assignments->pluck('class_id')->unique()->toArray();
+            $assignedSectionIds = $assignments->pluck('section_id')->unique()->toArray();
+
+            // Filter classes
+            $school_classes = $school_classes->filter(function ($class) use ($assignedClassIds) {
+                return in_array($class->id, $assignedClassIds);
+            });
+
+            // Filter sections
+            $school_sections = $school_sections->filter(function ($section) use ($assignedSectionIds) {
+                return in_array($section->id, $assignedSectionIds);
+            });
+        }
 
         $data = [
             'school_classes' => $school_classes,

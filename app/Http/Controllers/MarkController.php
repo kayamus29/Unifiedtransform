@@ -63,7 +63,6 @@ class MarkController extends Controller
         if ($user->hasRole('Teacher')) {
             $current_school_session_id = $this->getSchoolCurrentSession();
             return SchoolClass::whereIn('id', function ($query) use ($user, $current_school_session_id) {
-                // Strict Session Scope
                 $query->select('class_id')
                     ->from('assigned_teachers')
                     ->where('teacher_id', $user->id)
@@ -71,57 +70,39 @@ class MarkController extends Controller
             });
         }
 
-        // Default Deny
         return SchoolClass::whereRaw('1 = 0');
     }
 
     public function index(Request $request)
     {
-        // 1. Permission Check
         if (!Auth::user()->can('manage marks') && !Auth::user()->can('view marks')) {
-            // If they can't manage, they must at least be able to view
-            if (!Auth::user()->can('view marks'))
-                abort(403);
+            abort(403);
         }
 
-        // 2. Filter Protection
         $class_id = $request->query('class_id', 0);
-        if ($class_id > 0 && Auth::user()->hasRole('Teacher')) {
-            $isAllowed = $this->getAccessibleClasses()->where('id', $class_id)->exists();
-            if (!$isAllowed)
-                abort(403, 'Unauthorized access to this class.');
-        }
-
-        // 3. Execution (Legacy Logic Adapted)
         $section_id = $request->query('section_id', 0);
         $course_id = $request->query('course_id', 0);
         $semester_id = $request->query('semester_id', 0);
 
         $current_school_session_id = $this->getSchoolCurrentSession();
 
-        // Note: Admin gets all, Teacher gets restricted list via getAccessibleClasses if we were populating a dropdown.
-        // But for the results display, we follow the params. 
-        // We might want to pass $school_classes restricted?
-        // Legacy code: $school_classes = $this->schoolClassRepository->getAllBySession($current_school_session_id);
-        // Secure code:
-        $school_classes = $this->getAccessibleClasses()->get();
+        // Security Check
+        if (Auth::user()->hasRole('Teacher') && $class_id > 0) {
+            $isAllowed = $this->getAccessibleClasses()->where('id', $class_id)->exists();
+            if (!$isAllowed)
+                abort(403, 'Unauthorized access to this class.');
+        }
 
         $semesters = $this->semesterRepository->getAll($current_school_session_id);
+        $school_classes = $this->getAccessibleClasses()->get();
 
         $markRepository = new MarkRepository();
         $marks = $markRepository->getAllFinalMarks($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
 
         if (!$marks) {
-            // Instead of 404, just return empty view or handle gracefully? Legacy aborted.
-            // keeping legacy behavior for now but usually empty array is better.
             $marks = [];
-            // abort(404); // Legacy behavior was strict
         }
 
-        // ... (Omitting full legacy result calculation logic for brevity, assuming standard view return) ...
-        // Re-implementing the core view return for safety:
-
-        // Load Grading System (Only if we have marks? Legacy logic implies it)
         $gradingSystemRules = [];
         if (count($marks) > 0) {
             $gradingSystemRepository = new GradingSystemRepository();
@@ -147,6 +128,10 @@ class MarkController extends Controller
             'classes' => $school_classes,
             'marks' => $marks,
             'grading_system_rules' => $gradingSystemRules,
+            'class_id' => $class_id,
+            'section_id' => $section_id,
+            'course_id' => $course_id,
+            'semester_id' => $semester_id
         ];
 
         return view('marks.results', $data);
@@ -162,11 +147,10 @@ class MarkController extends Controller
         $section_id = $request->query('section_id');
         $course_id = $request->query('course_id');
         $semester_id = $request->query('semester_id', 0);
+        $current_school_session_id = $this->getSchoolCurrentSession();
 
         // Strict Ownership Check
         if (Auth::user()->hasRole('Teacher')) {
-            $current_school_session_id = $this->getSchoolCurrentSession();
-
             $exists = AssignedTeacher::where('teacher_id', Auth::id())
                 ->where('class_id', $class_id)
                 ->where('session_id', $current_school_session_id)
@@ -186,11 +170,8 @@ class MarkController extends Controller
             }
         }
 
-        // Legacy Data Loading
         try {
-            $current_school_session_id = $this->getSchoolCurrentSession();
             $academic_setting = $this->academicSettingRepository->getAcademicSetting();
-
             $examRepository = new ExamRepository();
             $examRepository->ensureExamsExistForClass($current_school_session_id, $semester_id, $class_id);
             $exams = $examRepository->getAll($current_school_session_id, $semester_id, $class_id);
@@ -233,48 +214,39 @@ class MarkController extends Controller
             abort(403);
         }
 
-        // Strict Validation
+        $current_school_session_id = $this->getSchoolCurrentSession();
+
+        // Validation with Scope
         $request->validate([
             'class_id' => [
                 'required',
-                function ($attribute, $value, $fail) {
+                function ($attribute, $value, $fail) use ($current_school_session_id) {
                     if (Auth::user()->hasRole('Admin'))
                         return;
-
-                    $current_school_session_id = $this->getSchoolCurrentSession(); // Use trait method inside closure or pass var? Trait method might not work inside if $this context lost. Safe to fetch again or pass.
-                    // Actually $this works in closure if php 5.4+, but let's be safe and use static or pass context if needed. 
-                    // In Controller method, $this is accessible.
-        
                     $exists = AssignedTeacher::where('teacher_id', Auth::id())
                         ->where('class_id', $value)
-                        // Getting session from request usually safe for context, but better to rely on system current session
-                        ->where('session_id', \App\Models\SchoolSession::latest()->first()->id) // Simplest reliable way for now or pass in use
+                        ->where('session_id', $current_school_session_id)
                         ->exists();
-
                     if (!$exists)
                         $fail('Unauthorized class.');
                 }
             ],
             'course_id' => [
                 'required',
-                function ($attribute, $value, $fail) use ($request) {
+                function ($attribute, $value, $fail) use ($request, $current_school_session_id) {
                     if (Auth::user()->hasRole('Admin'))
                         return;
-
                     $exists = AssignedTeacher::where('teacher_id', Auth::id())
                         ->where('course_id', $value)
                         ->where('class_id', $request->class_id)
-                        ->where('session_id', \App\Models\SchoolSession::latest()->first()->id)
+                        ->where('session_id', $current_school_session_id)
                         ->exists();
-
                     if (!$exists)
                         $fail('Unauthorized course.');
                 }
             ]
         ]);
 
-        // Legacy Store Logic
-        $current_school_session_id = $this->getSchoolCurrentSession();
         $rows = [];
         if ($request->student_mark) {
             foreach ($request->student_mark as $id => $stm) {
@@ -283,20 +255,18 @@ class MarkController extends Controller
                     $row['class_id'] = $request->class_id;
                     $row['student_id'] = $id;
 
-                    // Sum all dynamic marks - Ensure they are numeric
-                    $cleanBreakdown = array_map('intval', $breakdown);
+                    $cleanBreakdown = array_map('intval', (array) $breakdown);
                     $total = array_sum($cleanBreakdown);
                     $row['marks'] = $total;
                     $row['breakdown_marks'] = $cleanBreakdown;
 
-                    // Map legacy columns
                     $row['exam_mark'] = $cleanBreakdown['final_exam'] ?? 0;
                     $row['ca1_mark'] = $cleanBreakdown['ca_1'] ?? 0;
                     $row['ca2_mark'] = $cleanBreakdown['ca_2'] ?? 0;
 
                     $row['section_id'] = $request->section_id;
                     $row['course_id'] = $request->course_id;
-                    $row['session_id'] = $current_school_session_id; // Enforce system session
+                    $row['session_id'] = $current_school_session_id;
                     $row['exam_id'] = $exam;
 
                     $rows[] = $row;
@@ -313,28 +283,26 @@ class MarkController extends Controller
         }
     }
 
-    // Additional methods like showFinalMark, storeFinalMark, showCourseMark kept as is but should also be protected.
-    // Applying minimal protection to them for now to satisfy immediate safety.
-
     public function showFinalMark(Request $request)
     {
         if (!Auth::user()->can('manage marks'))
             abort(403);
-        // ... (Legacy logic passed through) ...
-        return $this->legacyShowFinalMark($request);
-    }
 
-    // ... Helper to avoid massive file duplication in artifact ...
-    // In real implementation I will write the whole file content.
-
-    public function legacyShowFinalMark($request)
-    {
         $class_id = $request->query('class_id');
         $section_id = $request->query('section_id');
         $course_id = $request->query('course_id');
         $semester_id = $request->query('semester_id', 0);
-
         $current_school_session_id = $this->getSchoolCurrentSession();
+
+        // Scope Check
+        if (Auth::user()->hasRole('Teacher')) {
+            $exists = AssignedTeacher::where('teacher_id', Auth::id())
+                ->where('class_id', $class_id)
+                ->where('session_id', $current_school_session_id)
+                ->exists();
+            if (!$exists)
+                abort(403, 'Unauthorized.');
+        }
 
         $markRepository = new MarkRepository();
         $studentsWithMarks = $markRepository->getAll($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
@@ -360,14 +328,14 @@ class MarkController extends Controller
         if (!Auth::user()->can('manage marks'))
             abort(403);
 
-        // Reuse strict validation logic? Yes.
-        $this->validate($request, [
+        $current_school_session_id = $this->getSchoolCurrentSession();
+
+        $request->validate([
             'class_id' => [
                 'required',
-                function ($attribute, $value, $fail) {
+                function ($attribute, $value, $fail) use ($current_school_session_id) {
                     if (Auth::user()->hasRole('Admin'))
                         return;
-                    $current_school_session_id = \App\Models\SchoolSession::latest()->first()->id;
                     $exists = AssignedTeacher::where('teacher_id', Auth::id())
                         ->where('class_id', $value)
                         ->where('session_id', $current_school_session_id)
@@ -378,26 +346,26 @@ class MarkController extends Controller
             ]
         ]);
 
-        $current_school_session_id = $this->getSchoolCurrentSession();
         $rows = [];
-        foreach ($request->calculated_mark as $id => $cmark) {
-            $row = [];
-            $row['class_id'] = $request->class_id;
-            $row['student_id'] = $id;
-            $row['calculated_marks'] = $cmark;
-            $row['final_marks'] = $request->final_mark[$id];
-            $row['note'] = $request->note[$id];
-            $row['section_id'] = $request->section_id;
-            $row['course_id'] = $request->course_id;
-            $row['session_id'] = $current_school_session_id;
-            $row['semester_id'] = $request->semester_id;
+        if ($request->calculated_mark) {
+            foreach ($request->calculated_mark as $id => $cmark) {
+                $row = [];
+                $row['class_id'] = $request->class_id;
+                $row['student_id'] = $id;
+                $row['calculated_marks'] = $cmark;
+                $row['final_marks'] = $request->final_mark[$id];
+                $row['note'] = $request->note[$id];
+                $row['section_id'] = $request->section_id;
+                $row['course_id'] = $request->course_id;
+                $row['session_id'] = $current_school_session_id;
+                $row['semester_id'] = $request->semester_id;
 
-            $rows[] = $row;
+                $rows[] = $row;
+            }
         }
         try {
             $markRepository = new MarkRepository();
             $markRepository->storeFinalMarks($rows);
-
             return back()->with('status', 'Submitting final marks was successful!');
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
@@ -409,13 +377,15 @@ class MarkController extends Controller
         $session_id = $request->query('session_id');
         $student_id = $request->query('student_id');
 
-        // Student Self-View Check
         if (Auth::user()->hasRole('Student')) {
             if (Auth::id() != $student_id)
                 abort(403);
+
+            if (Auth::user()->getTotalOutstandingBalance() > 0) {
+                return view('marks.restricted', ['balance' => Auth::user()->getTotalOutstandingBalance()]);
+            }
         }
 
-        // ... Legacy Logic ...
         $semester_id = $request->query('semester_id');
         $class_id = $request->query('class_id');
         $section_id = $request->query('section_id');
@@ -426,24 +396,20 @@ class MarkController extends Controller
         $marks = $markRepository->getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id);
         $finalMarks = $markRepository->getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id);
 
-        if (!$finalMarks) {
+        if (!$finalMarks)
             abort(404);
-        }
 
         $gradingSystemRepository = new GradingSystemRepository();
         $gradingSystem = $gradingSystemRepository->getGradingSystem($session_id, $semester_id, $class_id);
 
-        if (!$gradingSystem) {
-            // Handle gracefull?
+        if (!$gradingSystem)
             abort(404);
-        }
 
         $gradeRulesRepository = new GradeRuleRepository();
         $gradingSystemRules = $gradeRulesRepository->getAll($session_id, $gradingSystem->id);
 
-        if (!$gradingSystemRules) {
+        if (!$gradingSystemRules)
             abort(404);
-        }
 
         foreach ($finalMarks as $mark_key => $mark) {
             foreach ($gradingSystemRules as $key => $gradingSystemRule) {

@@ -36,7 +36,7 @@ class SchoolClassController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function index()
     {
@@ -49,20 +49,10 @@ class SchoolClassController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  SchoolClassStoreRequest  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(SchoolClassStoreRequest $request)
     {
@@ -76,21 +66,10 @@ class SchoolClassController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\SchoolClass  $schoolClass
-     * @return \Illuminate\Http\Response
-     */
-    public function show(SchoolClass $schoolClass)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      *
      * @param  $class_id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function edit($class_id)
     {
@@ -110,7 +89,7 @@ class SchoolClassController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request)
     {
@@ -121,16 +100,5 @@ class SchoolClassController extends Controller
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\SchoolClass  $schoolClass
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(SchoolClass $schoolClass)
-    {
-        //
     }
 }

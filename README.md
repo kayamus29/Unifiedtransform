@@ -67,6 +67,16 @@ When you contribute to a Github project you agree with this terms of [Github Ter
 Since this project is under **GNU General Public License v3.0**, according to Github's Terms of Service all your contributions are also under the same license terms.
 Thus you permit the user of this software to use your contribution under the terms of **GNU General Public License v3.0**.
 
+### Section-Based Teacher Assignment
+- **Goal**: Allow granular assignment of Section Teachers (Form Teachers) and Subject Teachers per specific section.
+- **Changes**:
+  - **Classes Dashboard**: Each section now displays its own "Section Teacher" with a dedicated icon and status.
+  - **Assignment Modal**: Redesigned with a **Section-Accordion** layout. Admins can expand each section to assign its primary teacher and subject teachers separately.
+  - **Backend**: `bulkAssign` updated to handle `section_teachers` and nested `course_teachers[section_id][course_id]` payloads.
+- **Verification**:
+  - Visual check confirmed a clean, non-cramped modal layout.
+  - Functional check confirmed data persists correctly for individual sections.
+
 ## Whats New
 v2.X is built from scratch. Both UI and internal workflow of the application are changed to a better design.
 
@@ -313,6 +323,10 @@ Students can only be promoted to a new class and section when a new Session alon
 
 **Teacher's dashboard**
 
+- [x] Enhance Teacher Assignment (Class & Course Teachers) <!-- id: 50 -->
+    - [x] Redesign UI to assign teachers to **Sections** instead of Classes <!-- id: 56 -->
+    - [x] Implement Section-specific Course Assignment in Modal <!-- id: 57 -->
+    - [x] Update Backend logic for nested section-course assignments <!-- id: 58 -->
 <h1 align="center"><img src="public/docs/imgs/ut/Screenshot 2021-12-07 at 01-41-04 Unifiedtransform.png"></h1>
 
 ### 1. View assigned courses

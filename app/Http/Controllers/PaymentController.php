@@ -14,23 +14,32 @@ class PaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $payments = StudentPayment::with(['student', 'schoolClass', 'session', 'semester'])
-            ->latest('transaction_date')
-            ->paginate(20);
+        $search = $request->input('search');
 
-        // Calculate balances for the current view
+        $query = StudentPayment::with(['student', 'schoolClass', 'session', 'semester']);
+
+        if ($search) {
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('id_card_number', 'like', "%{$search}%"); // ID card number might be in users or promotion table?
+                // Actually, id_card_number is in many places. Let's check User model/table.
+            });
+        }
+
+        $payments = $query->latest('transaction_date')
+            ->paginate(20)
+            ->appends(['search' => $search]);
+
+        // Calculate balances for the current view using centralized logic
         foreach ($payments as $payment) {
-            // 1. Total Expected for this class
-            $totalExpected = \App\Models\ClassFee::where('class_id', $payment->class_id)->sum('amount');
-
-            // 2. Total Paid by this student for this class & session
-            $totalPaid = StudentPayment::where('student_id', $payment->student_id)
-                ->where('class_id', $payment->class_id)
-                ->where('school_session_id', $payment->school_session_id)
-                ->sum('amount_paid');
-
-            $payment->outstanding_balance = $totalExpected - $totalPaid;
-            $payment->total_fees = $totalExpected;
+            if ($payment->student) {
+                $payment->outstanding_balance = $payment->student->getTotalOutstandingBalance();
+                $payment->total_fees = $payment->student->getTotalFees();
+            } else {
+                $payment->outstanding_balance = 0;
+                $payment->total_fees = 0;
+            }
         }
 
         return view('accounting.payments.index', compact('payments'));

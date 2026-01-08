@@ -30,6 +30,7 @@ class RoleSeeder extends Seeder
             // Staff
             'staff check-in',
             'create expense transfer', // Shared by Teacher & Staff
+            'create expenses', // New permission
             // Student/Parent
             'view own attendance',
             'view own marks',
@@ -40,6 +41,9 @@ class RoleSeeder extends Seeder
             'edit sections',
             'edit courses',
             'view classes',
+            'view audit logs',
+            'view assigned students',
+            'view users',
         ];
 
         foreach ($permissions as $permission) {
@@ -60,6 +64,7 @@ class RoleSeeder extends Seeder
             'collect fees',
             'manage expenses',
             'staff check-in', // Logic: Accountants usually check in too
+            'create expenses', // Assigned to Accountant
         ]);
 
         // Teacher
@@ -71,6 +76,7 @@ class RoleSeeder extends Seeder
             'view assigned syllabus',
             'staff check-in',
             'create expense transfer',
+            'view assigned students',
         ]);
 
         // Normal Staff (covers existing 'librarian' & 'staff')

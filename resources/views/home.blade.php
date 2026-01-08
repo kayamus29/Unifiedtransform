@@ -9,57 +9,107 @@
                     <div class="col ps-4">
                         <!-- <h1 class="display-6 mb-3"><i class="ms-auto bi bi-grid"></i> {{ __('Dashboard') }}</h1> -->
                         <div class="row dashboard">
-                            <div class="col">
-                                <div class="card rounded-pill">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="ms-2 me-auto">
-                                                <div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total
-                                                    Students</div>
+                            @if(Auth::user()->hasRole('Teacher'))
+                                <div class="col">
+                                    <div class="card rounded-pill border-primary shadow-sm">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start text-primary">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold"><i class="bi bi-people-fill me-3"></i> My Students
+                                                    </div>
+                                                </div>
+                                                <span
+                                                    class="badge bg-primary rounded-pill">{{$teacherAssignedStudentsCount}}</span>
                                             </div>
-                                            <span class="badge bg-dark rounded-pill">{{$studentCount}}</span>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="card rounded-pill">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="ms-2 me-auto">
-                                                <div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total
-                                                    Teachers</div>
+                                <div class="col">
+                                    <div class="card rounded-pill border-info shadow-sm">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start text-info">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold"><i class="bi bi-diagram-3 me-3"></i> My Classes</div>
+                                                </div>
+                                                <span class="badge bg-info rounded-pill">{{$teacherAssignedClassesCount}}</span>
                                             </div>
-                                            <span class="badge bg-dark rounded-pill">{{$teacherCount}}</span>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="card rounded-pill">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="ms-2 me-auto">
-                                                <div class="fw-bold"><i class="bi bi-diagram-3 me-3"></i> Total Classes
+                                <div class="col">
+                                    <div
+                                        class="card rounded-pill @if($teacherTodayAttendanceDone) border-success @else border-warning @endif shadow-sm">
+                                        <div class="card-body">
+                                            <div
+                                                class="d-flex justify-content-between align-items-start @if($teacherTodayAttendanceDone) text-success @else text-warning @endif">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold"><i class="bi bi-calendar-check me-3"></i> Attendance
+                                                    </div>
+                                                </div>
+                                                <span
+                                                    class="badge @if($teacherTodayAttendanceDone) bg-success @else bg-warning @endif rounded-pill">
+                                                    {{$teacherTodayAttendanceDone ? 'Done' : 'Pending'}}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="col">
+                                    <div class="card rounded-pill">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total
+                                                        Students</div>
+                                                </div>
+                                                <span class="badge bg-dark rounded-pill">{{$studentCount}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="card rounded-pill">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total
+                                                        Teachers</div>
+                                                </div>
+                                                <span class="badge bg-dark rounded-pill">{{$teacherCount}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @if(Auth::user()->hasRole('Student'))
+                                    <div class="col">
+                                        <div class="card rounded-pill border-danger shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start text-danger">
+                                                    <div class="ms-2 me-auto">
+                                                        <div class="fw-bold"><i class="bi bi-wallet2 me-3"></i> Balance</div>
+                                                    </div>
+                                                    <span
+                                                        class="badge bg-danger rounded-pill">₦{{ number_format($outstandingBalance, 2) }}</span>
                                                 </div>
                                             </div>
-                                            <span class="badge bg-dark rounded-pill">{{ $classCount }}</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            {{-- <div class="col">
-                                <div class="card rounded-pill">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="ms-2 me-auto">
-                                                <div class="fw-bold">Total Books</div>
+                                @endif
+                                <div class="col">
+                                    <div class="card rounded-pill">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start text-dark">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold"><i class="bi bi-diagram-3 me-3"></i> Total Classes
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-dark rounded-pill">{{ $classCount }}</span>
                                             </div>
-                                            <span class="badge bg-dark rounded-pill">800</span>
                                         </div>
                                     </div>
                                 </div>
-                            </div> --}}
+                            @endif
                         </div>
                         @if($studentCount > 0)
                             <div class="mt-3 d-flex align-items-center">
@@ -201,7 +251,8 @@
                                                                 aria-labelledby="flush-heading{{$notice->id}}"
                                                                 data-bs-parent="#noticeAccordion">
                                                                 <div class="accordion-body overflow-auto">
-                                                                    {!!Purify::clean($notice->notice)!!}</div>
+                                                                    {!!Purify::clean($notice->notice)!!}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     @endforeach

@@ -20,8 +20,22 @@
                 @endif
 
                 <div class="card shadow mb-4">
-                    <div class="card-header py-3">
+                    <div class="card-header py-3 d-flex align-items-center justify-content-between">
                         <h6 class="m-0 font-weight-bold text-primary">Payment History</h6>
+                        <form action="{{ route('accounting.payments.index') }}" method="GET" class="d-flex">
+                            <div class="input-group input-group-sm" style="width: 250px;">
+                                <input type="text" name="search" class="form-control" placeholder="Search Student/ID..."
+                                    value="{{ request('search') }}">
+                                <button class="btn btn-outline-primary" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                                @if(request('search'))
+                                    <a href="{{ route('accounting.payments.index') }}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+                                @endif
+                            </div>
+                        </form>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

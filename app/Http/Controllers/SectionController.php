@@ -10,22 +10,26 @@ use App\Interfaces\CourseInterface;
 use App\Interfaces\SectionInterface;
 use App\Http\Requests\SectionStoreRequest;
 use App\Interfaces\SchoolSessionInterface;
+use App\Models\AssignedTeacher;
+use App\Models\SchoolSession as SchoolSessionModel;
+use Illuminate\Support\Facades\Auth;
 
 class SectionController extends Controller
 {
     use SchoolSession;
-    
+
     protected $schoolSectionRepository;
     protected $schoolSessionRepository;
     protected $courseRepository;
 
     /**
-    * Create a new Controller instance
-    * 
-    * @param SectionInterface $schoolSectionRepository
-    * @return void
-    */
-    public function __construct(SchoolSessionInterface $schoolSessionRepository, SectionInterface $schoolSectionRepository, CourseInterface $courseRepository) {
+     * Create a new Controller instance
+     * 
+     * @param SectionInterface $schoolSectionRepository
+     * @return void
+     */
+    public function __construct(SchoolSessionInterface $schoolSessionRepository, SectionInterface $schoolSectionRepository, CourseInterface $courseRepository)
+    {
         $this->schoolSectionRepository = $schoolSectionRepository;
         $this->schoolSessionRepository = $schoolSessionRepository;
         $this->courseRepository = $courseRepository;
@@ -68,9 +72,34 @@ class SectionController extends Controller
         }
     }
 
-    public function getByClassId(Request $request) {
-        $sections = $this->schoolSectionRepository->getAllByClassId($request->query('class_id', 0));
-        $courses = $this->courseRepository->getByClassId($request->query('class_id', 0));
+    public function getByClassId(Request $request)
+    {
+        $user = Auth::user();
+        $class_id = $request->query('class_id', 0);
+        $current_school_session_id = $this->getSchoolCurrentSession();
+
+        if ($user->hasRole('Teacher')) {
+            $assignedSectionIds = AssignedTeacher::where('teacher_id', $user->id)
+                ->where('class_id', $class_id)
+                ->where('session_id', $current_school_session_id)
+                ->pluck('section_id')
+                ->unique();
+
+            $assignedCourseIds = AssignedTeacher::where('teacher_id', $user->id)
+                ->where('class_id', $class_id)
+                ->where('session_id', $current_school_session_id)
+                ->pluck('course_id')
+                ->unique();
+
+            $sections = $this->schoolSectionRepository->getAllByClassId($class_id)
+                ->whereIn('id', $assignedSectionIds);
+
+            $courses = $this->courseRepository->getByClassId($class_id)
+                ->whereIn('id', $assignedCourseIds);
+        } else {
+            $sections = $this->schoolSectionRepository->getAllByClassId($class_id);
+            $courses = $this->courseRepository->getByClassId($class_id);
+        }
 
         return response()->json(['sections' => $sections, 'courses' => $courses]);
     }
@@ -100,8 +129,8 @@ class SectionController extends Controller
 
         $data = [
             'current_school_session_id' => $current_school_session_id,
-            'section_id'                => $section_id,
-            'section'                   => $section,
+            'section_id' => $section_id,
+            'section' => $section,
         ];
         return view('sections.edit', $data);
     }

@@ -14,15 +14,15 @@
                             <li class="breadcrumb-item active" aria-current="page">Classes</li>
                         </ol>
                     </nav>
-                    <div class="row">
+                    <div class="row g-4">
                         @isset($school_classes)
                             @foreach ($school_classes as $school_class)
                             @php
                                 $total_sections = 0;
                             @endphp
-                                <div class="col-12">
-                                    <div class="card my-3">
-                                        <div class="card-header bg-transparent">
+                                <div class="col-md-6 col-xxl-4 mb-4">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-transparent border-bottom-0">
                                             <ul class="nav nav-tabs card-header-tabs">
                                                 <li class="nav-item">
                                                     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#class{{$school_class->id}}" role="tab" aria-current="true"><i class="bi bi-diagram-3"></i> {{$school_class->class_name}}</button>
@@ -53,12 +53,24 @@
                                                                         </h2>
                                                                         <div id="accordionClass{{$school_class->id}}Section{{$school_section->id}}" class="accordion-collapse collapse" aria-labelledby="headingClass{{$school_class->id}}Section{{$school_section->id}}" data-bs-parent="#accordionClass{{$school_class->id}}">
                                                                             <div class="accordion-body">
-                                                                                <p class="lead d-flex justify-content-between">
+                                                                                <p class="lead mb-2 d-flex justify-content-between">
                                                                                     <span>Room No: {{$school_section->room_no}}</span>
                                                                                     @can('edit sections')
                                                                                     <span><a href="{{route('section.edit', ['id' => $school_section->id])}}" role="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Edit</a></span>
                                                                                     @endcan
                                                                                 </p>
+                                                                                <div class="mb-3 px-3 py-2 bg-light rounded shadow-sm">
+                                                                                    @php
+                                                                                        $sectionTeacher = $school_class->assignedTeachers
+                                                                                            ->where('section_id', $school_section->id)
+                                                                                            ->whereNull('course_id')
+                                                                                            ->first();
+                                                                                    @endphp
+                                                                                    <i class="bi bi-person-workspace text-primary"></i> <strong>Section Teacher:</strong>
+                                                                                    <span class="ms-2 @if(!$sectionTeacher) text-muted @else text-dark fw-bold @endif">
+                                                                                        {{ $sectionTeacher ? $sectionTeacher->teacher->first_name . ' ' . $sectionTeacher->teacher->last_name : 'Not Assigned' }}
+                                                                                    </span>
+                                                                                </div>
                                                                                 <div class="list-group">
                                                                                     <a href="{{route('student.list.show', ['class_id' => $school_class->id, 'section_id' => $school_section->id, 'section_name' => $school_section->section_name])}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                                                                         View Students
@@ -127,15 +139,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                            <div class="mt-2 mb-2">
-                                                <strong>Class Teacher:</strong>
-                                                @php
-                                                    $classTeacher = $school_class->assignedTeachers->whereNull('course_id')->first();
-                                                @endphp
-                                                <span class="text-primary">{{ $classTeacher ? $classTeacher->teacher->first_name . ' ' . $classTeacher->teacher->last_name : 'Not Assigned' }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer bg-transparent d-flex justify-content-between">
+                                        <div class="card-footer bg-transparent d-flex justify-content-between border-top-0 mt-auto">
                                             @isset($total_sections)
                                                 <span>Total Sections: {{$total_sections}}</span>
                                             @endisset
@@ -168,68 +172,96 @@
                                                     <input type="hidden" name="class_id" value="{{$school_class->id}}">
                                                     <input type="hidden" name="session_id" value="{{$school_class->session_id}}"> 
                                                     
-                                                    <div class="mb-4">
-                                                        <h6 class="border-bottom pb-2">Class Teacher</h6>
-                                                        <div class="mb-3">
-                                                            <label class="form-label small">Select Class Teacher</label>
-                                                            <select class="form-select form-select-sm" name="class_teacher_id">
-                                                                <option value="">-- Select Teacher --</option>
-                                                                @foreach($teachers as $teacher)
-                                                                    <option value="{{$teacher->id}}" 
-                                                                        @if($classTeacher && $classTeacher->teacher_id == $teacher->id) selected @endif>
-                                                                        {{$teacher->first_name}} {{$teacher->last_name}}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
+                                                    <div class="alert alert-info py-2">
+                                                        <i class="bi bi-info-circle me-2"></i> Assign teachers to each section and their respective courses.
                                                     </div>
 
-                                                    <div class="mb-4">
-                                                        <h6 class="border-bottom pb-2">Course Teachers</h6>
-                                                        @if($school_class->courses->count() > 0)
-                                                            <div class="table-responsive">
-                                                                <table class="table table-sm table-bordered">
-                                                                    <thead class="table-light">
-                                                                        <tr>
-                                                                            <th>Course</th>
-                                                                            <th>Current Teacher</th>
-                                                                            <th>Assign New</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        @foreach($school_class->courses as $course)
+                                                    <div class="accordion" id="modalAccordion{{$school_class->id}}">
+                                                        @foreach ($school_sections as $school_section)
+                                                            @if ($school_section->class_id == $school_class->id)
+                                                                <div class="accordion-item mb-2 shadow-sm border">
+                                                                    <h2 class="accordion-header" id="modalHeading{{$school_section->id}}">
+                                                                        <button class="accordion-button @if(!$loop->first) collapsed @endif bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#modalCollapse{{$school_section->id}}">
+                                                                            <i class="bi bi-layers me-2"></i> Section: <strong>{{$school_section->section_name}}</strong>
+                                                                        </button>
+                                                                    </h2>
+                                                                    <div id="modalCollapse{{$school_section->id}}" class="accordion-collapse collapse @if($loop->first) show @endif" data-bs-parent="#modalAccordion{{$school_class->id}}">
+                                                                        <div class="accordion-body">
+                                                                            <!-- Section Teacher -->
                                                                             @php
-                                                                                // Find existing assignment for this course
-                                                                                $courseAssignment = $school_class->assignedTeachers->where('course_id', $course->id)->first();
+                                                                                $currSectionTeacher = $school_class->assignedTeachers
+                                                                                    ->where('section_id', $school_section->id)
+                                                                                    ->whereNull('course_id')
+                                                                                    ->first();
                                                                             @endphp
-                                                                            <tr>
-                                                                                <td>{{$course->course_name}} <small class="text-muted">({{$course->course_type}})</small></td>
-                                                                                <td>
-                                                                                    @if($courseAssignment)
-                                                                                        <span class="badge bg-success">{{$courseAssignment->teacher->first_name}} {{$courseAssignment->teacher->last_name}}</span>
-                                                                                    @else
-                                                                                        <span class="badge bg-secondary">Unassigned</span>
-                                                                                    @endif
-                                                                                </td>
-                                                                                <td>
-                                                                                    <select class="form-select form-select-sm" name="course_teachers[{{$course->id}}]">
-                                                                                        <option value="">-- Select --</option>
+                                                                            <div class="row mb-4 align-items-center">
+                                                                                <div class="col-md-4">
+                                                                                    <label class="fw-bold"><i class="bi bi-person-workspace text-primary"></i> Section Teacher</label>
+                                                                                    <p class="small text-muted mb-0">The primary overseer for this section.</p>
+                                                                                </div>
+                                                                                <div class="col-md-8">
+                                                                                    <select class="form-select" name="section_teachers[{{$school_section->id}}]">
+                                                                                        <option value="">-- Unassigned --</option>
                                                                                         @foreach($teachers as $teacher)
-                                                                                            <option value="{{$teacher->id}}"
-                                                                                                @if($courseAssignment && $courseAssignment->teacher_id == $teacher->id) selected @endif>
+                                                                                            <option value="{{$teacher->id}}" 
+                                                                                                @if($currSectionTeacher && $currSectionTeacher->teacher_id == $teacher->id) selected @endif>
                                                                                                 {{$teacher->first_name}} {{$teacher->last_name}}
                                                                                             </option>
                                                                                         @endforeach
                                                                                     </select>
-                                                                                </td>
-                                                                            </tr>
-                                                                        @endforeach
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        @else
-                                                            <p class="text-muted">No courses found for this class.</p>
-                                                        @endif
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <!-- Course Teachers for this section -->
+                                                                            <div class="bg-white p-3 rounded border">
+                                                                                <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-journal-medical text-success"></i> Course Teachers for {{$school_section->section_name}}</h6>
+                                                                                @if($school_class->courses->count() > 0)
+                                                                                    <div class="table-responsive">
+                                                                                        <table class="table table-sm table-hover align-middle">
+                                                                                            <thead class="table-light small">
+                                                                                                <tr>
+                                                                                                    <th style="width: 40%">Course</th>
+                                                                                                    <th>Assigned Teacher</th>
+                                                                                                </tr>
+                                                                                            </thead>
+                                                                                            <tbody>
+                                                                                                @foreach($school_class->courses as $course)
+                                                                                                    @php
+                                                                                                        $currCourseTeacher = $school_class->assignedTeachers
+                                                                                                            ->where('section_id', $school_section->id)
+                                                                                                            ->where('course_id', $course->id)
+                                                                                                            ->first();
+                                                                                                    @endphp
+                                                                                                    <tr>
+                                                                                                        <td>
+                                                                                                            <span class="fw-bold">{{$course->course_name}}</span>
+                                                                                                            <div class="text-muted" style="font-size: 0.75rem">{{$course->course_type}}</div>
+                                                                                                        </td>
+                                                                                                        <td>
+                                                                                                            <select class="form-select form-select-sm" name="course_teachers[{{$school_section->id}}][{{$course->id}}]">
+                                                                                                                <option value="">-- Select Teacher --</option>
+                                                                                                                @foreach($teachers as $teacher)
+                                                                                                                    <option value="{{$teacher->id}}"
+                                                                                                                        @if($currCourseTeacher && $currCourseTeacher->teacher_id == $teacher->id) selected @endif>
+                                                                                                                        {{$teacher->first_name}} {{$teacher->last_name}}
+                                                                                                                    </option>
+                                                                                                                @endforeach
+                                                                                                            </select>
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                @endforeach
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </div>
+                                                                                @else
+                                                                                    <p class="text-center text-muted small my-3">No courses defined for this class.</p>
+                                                                                @endif
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">

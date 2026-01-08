@@ -38,7 +38,11 @@
                                                     <div>
                                                         <strong>{{ $fee->feeHead->name ?? 'Unknown Fee' }}</strong>
                                                         <br>
-                                                        <small class="text-muted">{{ $fee->description }}</small>
+                                                        <small class="text-muted">
+                                                            @if($fee->session) {{ $fee->session->session_name }} @endif
+                                                            @if($fee->semester) / {{ $fee->semester->semester_name }} @endif
+                                                            {{ $fee->description ? '- ' . $fee->description : '' }}
+                                                        </small>
                                                     </div>
                                                     <div class="text-right d-flex align-items-center">
                                                         <span
@@ -102,9 +106,27 @@
                             <label for="amount" class="form-label">Amount (₦)</label>
                             <input type="number" step="0.01" class="form-control" name="amount" required>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="session_id" class="form-label">Session</label>
+                                <select name="session_id" id="session_id" class="form-select" required>
+                                    @foreach($sessions as $session)
+                                        <option value="{{ $session->id }}" {{ $session->id == $current_session_id ? 'selected' : '' }}>{{ $session->session_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="semester_id" class="form-label">Term/Semester</label>
+                                <select name="semester_id" id="semester_id" class="form-select" required>
+                                    @foreach($semesters as $semester)
+                                        <option value="{{ $semester->id }}">{{ $semester->semester_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                         <div class="form-group mb-3">
                             <label for="description" class="form-label">Description (Optional)</label>
-                            <input type="text" class="form-control" name="description" placeholder="e.g. Terms 1-3">
+                            <input type="text" class="form-control" name="description" placeholder="e.g. For all students">
                         </div>
                     </div>
                     <div class="modal-footer">

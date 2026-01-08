@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ExpenseController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['can:manage expenses|create expenses']);
+        $this->middleware(['can:manage expenses'])->only(['updateStatus', 'correct']);
+    }
+
     public function index()
     {
         $expenses = Expense::with(['requester', 'approver'])->latest('expense_date')->paginate(20);

@@ -29,5 +29,15 @@ class AuthServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return $user->hasRole('Admin') ? true : null;
         });
+
+        // Composite Gate for Student List Access (Fixes Middleware Pipe Issue)
+        Gate::define('view-student-list', function ($user) {
+            return $user->can('view users') || $user->can('view assigned students');
+        });
+
+        // Composite Gate for Attendance Access
+        Gate::define('view-attendance-pages', function ($user) {
+            return $user->can('view attendances') || $user->can('take attendance');
+        });
     }
 }
