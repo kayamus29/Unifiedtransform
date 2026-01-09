@@ -10,14 +10,17 @@ use App\Models\Routine;
 use App\Models\Notice;
 use App\Models\Promotion;
 use App\Traits\SchoolSession;
+use App\Interfaces\SchoolSessionInterface;
 
 class StudentPortalController extends Controller
 {
     use SchoolSession;
+    protected $schoolSessionRepository;
 
-    public function __construct()
+    public function __construct(SchoolSessionInterface $schoolSessionRepository)
     {
         $this->middleware(['auth', 'role:Student']);
+        $this->schoolSessionRepository = $schoolSessionRepository;
     }
 
     /**
