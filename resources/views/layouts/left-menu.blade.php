@@ -151,7 +151,7 @@
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
                         </li>
             @endif
-            @if(!Auth::user()->hasRole('Student'))
+            @if(!Auth::user()->hasRole('Student') && !Auth::user()->hasRole('Accountant'))
                 <li class="nav-item border-bottom">
                     <a type="button" href="#exam-grade-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('exams*') ? 'active' : '' }}"><i
