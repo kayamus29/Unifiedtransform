@@ -73,7 +73,7 @@ class PaymentController extends Controller
             // Auto-detect session/semester if not provided? 
             // For now, let's make them required or fallback to latest.
             $session_id = $request->school_session_id ?? SchoolSession::latest()->first()->id;
-            $semester_id = $request->semester_id ?? Semester::where('school_session_id', $session_id)->first()->id; // Fallback risky
+            $semester_id = $request->semester_id ?? Semester::where('session_id', $session_id)->first()->id; // Fallback risky
 
             // Better to force user selection to be accurate
             $request->validate([
@@ -86,7 +86,7 @@ class PaymentController extends Controller
             $payment = StudentPayment::create([
                 'student_id' => $request->student_id,
                 'class_id' => $request->class_id,
-                'school_session_id' => $request->school_session_id,
+                'session_id' => $request->school_session_id,
                 'semester_id' => $request->semester_id,
                 'amount_paid' => $request->amount_paid,
                 'transaction_date' => $request->transaction_date,

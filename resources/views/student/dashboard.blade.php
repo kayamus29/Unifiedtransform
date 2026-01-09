@@ -1,138 +1,129 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
-        <div class="container-fluid">
-            <div class="header-body">
-                <h1 class="text-white mb-4">My Dashboard</h1>
+    <div class="container">
+        <div class="row justify-content-start">
+            @include('layouts.left-menu')
+            <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+                <div class="row pt-3">
+                    <div class="col ps-4">
+                        <h1 class="display-6 mb-3"><i class="bi bi-grid-fill"></i> My Dashboard</h1>
+                        
+                        <div class="row dashboard">
+                            <div class="col-md-3">
+                                <div class="card rounded-pill border-success shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center text-success">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold"><i class="bi bi-calendar-check-fill me-2"></i> Present</div>
+                                            </div>
+                                            <span class="badge bg-success rounded-pill">{{ $totalPresent }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card rounded-pill border-warning shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center text-warning">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold"><i class="bi bi-calendar-x-fill me-2"></i> Absent</div>
+                                            </div>
+                                            <span class="badge bg-warning rounded-pill">{{ $totalAbsent }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card rounded-pill border-danger shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center text-danger">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold"><i class="bi bi-wallet2 me-2"></i> Balance</div>
+                                            </div>
+                                            <span class="badge bg-danger rounded-pill">₦{{ number_format($outstandingBalance, 2) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card rounded-pill border-info shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center text-info">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold"><i class="bi bi-mortarboard-fill me-2"></i> 
+                                                    {{ $promotion->schoolClass->class_name ?? 'N/A' }} 
+                                                </div>
+                                            </div>
+                                            <i class="bi bi-info-circle"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Stats Cards -->
-                <div class="row">
-                    <div class="col-xl-3 col-lg-6">
-                        <div class="card card-stats mb-4 mb-xl-0">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <h5 class="card-title text-uppercase text-muted mb-0">Present</h5>
-                                        <span class="h2 font-weight-bold mb-0">{{ $totalPresent }}</span>
+                        <div class="row align-items-md-stretch mt-4">
+                            <div class="col-md-8">
+                                <div class="card shadow-sm border-0 mb-4">
+                                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i> Recent Attendance</h5>
+                                        <a href="{{ route('student.attendance') }}" class="btn btn-sm btn-outline-primary">View History</a>
                                     </div>
-                                    <div class="col-auto">
-                                        <div class="icon icon-shape bg-success text-white rounded-circle shadow">
-                                            <i class="fas fa-check"></i>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0">
+                                                <thead class="bg-light">
+                                                    <tr>
+                                                        <th class="ps-4">Date</th>
+                                                        <th>Status</th>
+                                                        <th>Class</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($recentAttendance as $record)
+                                                        <tr>
+                                                            <td class="ps-4">{{ $record->created_at->format('d M, Y') }}</td>
+                                                            <td>
+                                                                <span class="badge rounded-pill {{ $record->status == 'Present' ? 'bg-success' : 'bg-danger' }}">
+                                                                    {{ $record->status }}
+                                                                </span>
+                                                            </td>
+                                                            <td>{{ $record->schoolClass->class_name ?? 'N/A' }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="3" class="text-center py-4 text-muted">No recent attendance records.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-lg-6">
-                        <div class="card card-stats mb-4 mb-xl-0">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <h5 class="card-title text-uppercase text-muted mb-0">Absent</h5>
-                                        <span class="h2 font-weight-bold mb-0">{{ $totalAbsent }}</span>
+                            
+                            <div class="col-md-4">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-transparent border-0">
+                                        <h5 class="mb-0"><i class="bi bi-megaphone-fill me-2"></i> Latest Notices</h5>
                                     </div>
-                                    <div class="col-auto">
-                                        <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                                            <i class="fas fa-times"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-lg-6">
-                        <div class="card card-stats mb-4 mb-xl-0">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <h5 class="card-title text-uppercase text-muted mb-0">Class</h5>
-                                        <span class="h2 font-weight-bold mb-0">
-                                            @if($promotion)
-                                                {{ $promotion->schoolClass->class_name ?? 'N/A' }}
-                                            @else
-                                                N/A
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="col-auto">
-                                        <div class="icon icon-shape bg-info text-white rounded-circle shadow">
-                                            <i class="fas fa-school"></i>
-                                        </div>
+                                    <div class="card-body">
+                                        @forelse($notices as $notice)
+                                            <div class="mb-3 pb-3 border-bottom last-child-no-border">
+                                                <h6 class="text-primary mb-1">{{ $notice->title ?? 'Notice' }}</h6>
+                                                <p class="text-muted small mb-1">{!! Str::limit(strip_tags($notice->notice), 80) !!}</p>
+                                                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> {{ $notice->created_at->diffForHumans() }}</small>
+                                            </div>
+                                        @empty
+                                            <div class="text-center py-4 text-muted">No recent notices.</div>
+                                        @endforelse
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container-fluid mt--7">
-        <div class="row mt-5">
-            <div class="col-xl-8 mb-5 mb-xl-0">
-                <div class="card shadow">
-                    <div class="card-header border-0">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <h3 class="mb-0">Recent Attendance</h3>
-                            </div>
-                            <div class="col text-right">
-                                <a href="{{ route('student.attendance') }}" class="btn btn-sm btn-primary">See all</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table align-items-center table-flush">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th scope="col">Date</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentAttendance as $record)
-                                    <tr>
-                                        <th scope="row">{{ $record->created_at->format('d M Y') }}</th>
-                                        <td>
-                                            <span class="badge badge-dot mr-4">
-                                                <i class="bg-{{ $record->status == 'Present' ? 'success' : 'warning' }}"></i>
-                                                {{ $record->status }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="2">No attendance records found.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4">
-                <div class="card shadow">
-                    <div class="card-header border-0">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <h3 class="mb-0">Notices</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        @forelse($notices as $notice)
-                            <div class="mb-3">
-                                <h4 class="h5">{{ $notice->title ?? 'Notice' }}</h4>
-                                <p class="text-sm text-muted">{{ Str::limit($notice->notice ?? '', 100) }}</p>
-                            </div>
-                        @empty
-                            <p class="text-muted">No recent notices.</p>
-                        @endforelse
-                    </div>
-                </div>
+                @include('layouts.footer')
             </div>
         </div>
     </div>

@@ -39,19 +39,19 @@ class StudentPortalController extends Controller
 
         // Recent attendance
         $recentAttendance = Attendance::where('student_id', $student->id)
-            ->where('school_session_id', $current_session_id)
+            ->where('session_id', $current_session_id)
             ->latest()
             ->take(5)
             ->get();
 
         // Attendance summary
         $totalPresent = Attendance::where('student_id', $student->id)
-            ->where('school_session_id', $current_session_id)
+            ->where('session_id', $current_session_id)
             ->where('status', 'Present')
             ->count();
 
         $totalAbsent = Attendance::where('student_id', $student->id)
-            ->where('school_session_id', $current_session_id)
+            ->where('session_id', $current_session_id)
             ->where('status', 'Absent')
             ->count();
 
@@ -61,13 +61,16 @@ class StudentPortalController extends Controller
             ->take(3)
             ->get();
 
+        $outstandingBalance = $student->getTotalOutstandingBalance();
+
         return view('student.dashboard', compact(
             'student',
             'promotion',
             'recentAttendance',
             'totalPresent',
             'totalAbsent',
-            'notices'
+            'notices',
+            'outstandingBalance'
         ));
     }
 
@@ -80,8 +83,8 @@ class StudentPortalController extends Controller
         $current_session_id = $this->getSchoolCurrentSession();
 
         $attendance = Attendance::where('student_id', $student->id)
-            ->where('school_session_id', $current_session_id)
-            ->with('schoolClass')
+            ->where('session_id', $current_session_id)
+            ->with(['schoolClass', 'section', 'course'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -97,7 +100,7 @@ class StudentPortalController extends Controller
         $current_session_id = $this->getSchoolCurrentSession();
 
         $marks = Mark::where('student_id', $student->id)
-            ->where('school_session_id', $current_session_id)
+            ->where('session_id', $current_session_id)
             ->with(['course', 'exam'])
             ->get();
 
@@ -121,8 +124,8 @@ class StudentPortalController extends Controller
         if ($promotion) {
             $routines = Routine::where('section_id', $promotion->section_id)
                 ->where('session_id', $current_session_id)
+                ->with(['course', 'teacher'])
                 ->orderBy('weekday')
-                ->orderBy('start_time')
                 ->get();
         }
 

@@ -117,47 +117,31 @@
             @endif
             @if(Auth::user()->hasRole('Student'))
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('student.attendance.show') ? 'active' : '' }}"
-                                href="{{route('student.attendance.show', ['id' => Auth::user()->id])}}"><i
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('student.attendance') ? 'active' : '' }}"
+                                href="{{route('student.attendance')}}"><i
                                     class="bi bi-calendar2-week"></i> <span
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Attendance</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('student.marks') ? 'active' : '' }}"
+                                href="{{route('student.marks')}}"><i
+                                    class="bi bi-journal-check"></i> <span
+                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Marks</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('student.timetable') ? 'active' : '' }}"
+                                href="{{route('student.timetable')}}"><i
+                                    class="bi bi-calendar4-range"></i> <span
+                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Timetable</span></a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('course.student.list.show') ? 'active' : '' }}"
                                 href="{{route('course.student.list.show', ['student_id' => Auth::user()->id])}}"><i
                                     class="bi bi-journal-medical"></i> <span
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Courses</span></a>
                         </li>
-                        {{-- <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="bi bi-file-post"></i> <span
-                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Assignments</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="bi bi-cloud-sun"></i> <span
-                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Marks</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="bi bi-journal-text"></i> <span
-                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Syllabus</span></a>
-                        </li> --}}
-                        <li class="nav-item border-bottom">
-                            @php
-                                if (session()->has('browse_session_id')) {
-                                    $class_info = \App\Models\Promotion::where('session_id', session('browse_session_id'))->where('student_id', Auth::user()->id)->first();
-                                } else {
-                                    $latest_session = \App\Models\SchoolSession::latest()->first();
-                                    if ($latest_session) {
-                                        $class_info = \App\Models\Promotion::where('session_id', $latest_session->id)->where('student_id', Auth::user()->id)->first();
-                                    } else {
-                                        $class_info = [];
-                                    }
-                                }
-                            @endphp
-                            <a class="nav-link" href="{{route('section.routine.show', [
-                    'class_id' => $class_info->class_id,
-                    'section_id' => $class_info->section_id
-                ])}}"><i class="bi bi-calendar4-range"></i> <span
-                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
-                        </li>
+
             @endif
             @if(!Auth::user()->hasRole('Student') && !Auth::user()->hasRole('Accountant') && Auth::user()->role != 'accountant')
                 <li class="nav-item border-bottom">

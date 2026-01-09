@@ -69,7 +69,7 @@ class AccountingDashboardController extends Controller
         }
 
         // 3. Total Received
-        $totalReceived = StudentPayment::where('school_session_id', $session->id)->sum('amount_paid');
+        $totalReceived = StudentPayment::where('session_id', $session->id)->sum('amount_paid');
 
         // 4. Outstanding
         $totalOutstanding = $totalExpectedFees - $totalReceived;
