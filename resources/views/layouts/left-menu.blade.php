@@ -2,7 +2,15 @@
     <div class="d-flex flex-column align-items-center align-items-sm-start ">
         <ul class="nav flex-column pt-2 w-100">
             <li class="nav-item">
-                <a class="nav-link {{ request()->is('home') ? 'active' : '' }}" href="{{url('home')}}"><i
+                @php
+                    $dashboardUrl = url('home');
+                    if (Auth::user()->hasRole('Accountant') || Auth::user()->role == 'accountant') {
+                        $dashboardUrl = route('accounting.dashboard');
+                    } elseif (Auth::user()->hasRole('Student')) {
+                        $dashboardUrl = route('student.dashboard');
+                    }
+                @endphp
+                <a class="nav-link {{ (request()->is('home') || request()->is('accounting/dashboard') || request()->is('portal/student')) ? 'active' : '' }}" href="{{ $dashboardUrl }}"><i
                         class="ms-auto bi bi-grid"></i> <span
                         class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">{{ __('Dashboard') }}</span></a>
             </li>
@@ -58,7 +66,7 @@
                         </li>
                     </ul>
                 </li>
-            @elseif(Auth::user()->hasAnyRole(['Admin', 'Accountant']))
+            @elseif(Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
                     <a type="button" href="#student-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('students*') ? 'active' : '' }}"><i
@@ -79,7 +87,7 @@
                 </li>
             @endif
 
-            @if(Auth::user()->hasAnyRole(['Admin', 'Accountant']))
+            @if(Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
                     <a type="button" href="#teacher-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('teachers*') ? 'active' : '' }}"><i
@@ -151,7 +159,7 @@
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
                         </li>
             @endif
-            @if(!Auth::user()->hasRole('Student') && !Auth::user()->hasRole('Accountant'))
+            @if(!Auth::user()->hasRole('Student') && !Auth::user()->hasRole('Accountant') && Auth::user()->role != 'accountant')
                 <li class="nav-item border-bottom">
                     <a type="button" href="#exam-grade-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('exams*') ? 'active' : '' }}"><i

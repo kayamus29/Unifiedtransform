@@ -44,6 +44,14 @@ class HomeController extends Controller
      */
     public function index()
     {
+        if (Auth::user()->hasRole('Accountant')) {
+            return redirect()->route('accounting.dashboard');
+        }
+
+        if (Auth::user()->hasRole('Student')) {
+            return redirect()->route('student.dashboard');
+        }
+
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $classCount = $this->schoolClassRepository->getAllBySession($current_school_session_id)->count();

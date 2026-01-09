@@ -38,7 +38,7 @@ class StaffController extends Controller
             'zip' => 'required|string',
         ]);
 
-        User::create([
+        $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
@@ -52,6 +52,19 @@ class StaffController extends Controller
             'city' => $request->city,
             'zip' => $request->zip,
         ]);
+
+        // Map column role to Spatie role and assign
+        $roleMap = [
+            'admin' => 'Admin',
+            'teacher' => 'Teacher',
+            'accountant' => 'Accountant',
+            'librarian' => 'Normal Staff',
+            'staff' => 'Normal Staff',
+        ];
+
+        if (isset($roleMap[$request->role])) {
+            $user->assignRole($roleMap[$request->role]);
+        }
 
         return redirect()->route('staff.index')->with('success', 'Staff member added successfully.');
     }
@@ -93,6 +106,19 @@ class StaffController extends Controller
             'city',
             'zip'
         ]));
+
+        // Sync Spatie role
+        $roleMap = [
+            'admin' => 'Admin',
+            'teacher' => 'Teacher',
+            'accountant' => 'Accountant',
+            'librarian' => 'Normal Staff',
+            'staff' => 'Normal Staff',
+        ];
+
+        if (isset($roleMap[$request->role])) {
+            $staff->syncRoles([$roleMap[$request->role]]);
+        }
 
         if ($request->filled('password')) {
             $request->validate(['password' => 'string|min:8|confirmed']);
