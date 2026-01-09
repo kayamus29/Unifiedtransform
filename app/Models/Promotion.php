@@ -35,14 +35,24 @@ class Promotion extends Model
     /**
      * Get the schoolClass.
      */
-    public function schoolClass() {
+    public function schoolClass()
+    {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
     /**
      * Get the section.
      */
-    public function section() {
+    public function section()
+    {
         return $this->belongsTo(Section::class, 'section_id');
+    }
+
+    /**
+     * Get the session.
+     */
+    public function session()
+    {
+        return $this->belongsTo(SchoolSession::class, 'session_id');
     }
 }

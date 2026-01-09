@@ -31,7 +31,10 @@
                                         <th>Student</th>
                                         <th>Fee Head</th>
                                         <th>Session/Term</th>
-                                        <th>Amount</th>
+                                        <th>Total Amount</th>
+                                        <th>Paid</th>
+                                        <th>Balance</th>
+                                        <th>Status</th>
                                         <th>Description</th>
                                         <th>Action</th>
                                     </tr>
@@ -44,7 +47,18 @@
                                             <td>
                                                 {{ $fee->session->session_name }} / {{ $fee->semester->semester_name }}
                                             </td>
-                                            <td class="fw-bold text-danger">₦{{ number_format($fee->amount, 2) }}</td>
+                                            <td class="fw-bold">₦{{ number_format($fee->amount, 2) }}</td>
+                                            <td class="text-success">₦{{ number_format($fee->amount_paid, 2) }}</td>
+                                            <td class="text-danger">₦{{ number_format($fee->balance, 2) }}</td>
+                                            <td>
+                                                @if($fee->status == 'paid')
+                                                    <span class="badge bg-success">Paid</span>
+                                                @elseif($fee->status == 'partial')
+                                                    <span class="badge bg-warning text-dark">Partial</span>
+                                                @else
+                                                    <span class="badge bg-danger">Owing</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $fee->description ?? '-' }}</td>
                                             <td>
                                                 <form action="{{ route('accounting.fees.student.destroy', $fee->id) }}"

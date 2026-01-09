@@ -104,7 +104,7 @@ class UserRepository implements UserInterface
                 $studentAcademicInfoRepository->store($request, $student->id);
 
                 // Assign student to a Class and a Section
-                $promotionRepository = new PromotionRepository();
+                $promotionRepository = app(PromotionRepository::class);
                 $promotionRepository->assignClassSection($request, $student->id);
 
                 $student->givePermissionTo(
@@ -150,7 +150,7 @@ class UserRepository implements UserInterface
                 $studentParentInfoRepository->update($request, $request['student_id']);
 
                 // Update Student's ID card number
-                $promotionRepository = new PromotionRepository();
+                $promotionRepository = app(PromotionRepository::class);
                 $promotionRepository->update($request, $request['student_id']);
             });
         } catch (\Exception $e) {

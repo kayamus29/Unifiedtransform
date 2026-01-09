@@ -34,18 +34,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="card rounded-pill border-danger shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-center text-danger">
-                                            <div class="ms-2 me-auto">
-                                                <div class="fw-bold"><i class="bi bi-wallet2 me-2"></i> Balance</div>
+                                <a href="{{ route('student.fees') }}" class="text-decoration-none">
+                                    <div class="card rounded-pill border-danger shadow-sm h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center text-danger">
+                                                <div class="ms-2 me-auto">
+                                                    <div class="fw-bold"><i class="bi bi-wallet2 me-2"></i> Balance</div>
+                                                </div>
+                                                <span class="badge bg-danger rounded-pill">₦{{ number_format($outstandingBalance, 2) }}</span>
                                             </div>
-                                            <span class="badge bg-danger rounded-pill">₦{{ number_format($outstandingBalance, 2) }}</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+                                </a>
                             <div class="col-md-3">
                                 <div class="card rounded-pill border-info shadow-sm">
                                     <div class="card-body">

@@ -24,13 +24,24 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="student_id" class="form-label">Select Student <span
                                             class="text-danger">*</span></label>
-                                    <select class="form-select" name="student_id" required>
+                                    <select class="form-select select2" name="student_id" id="student_select" required>
                                         <option value="">-- Choose Student --</option>
                                         @foreach($students as $student)
                                             <option value="{{ $student->id }}">{{ $student->first_name }}
-                                                {{ $student->last_name }} (ID: {{ $student->id }})</option>
+                                                {{ $student->last_name }} (ID: {{ $student->id }})
+                                            </option>
                                         @endforeach
                                     </select>
+                                </div>
+
+                                <!-- Fee Selection -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="student_fee_id" class="form-label">Select Fee to Pay <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" name="student_fee_id" id="fee_select" required disabled>
+                                        <option value="">-- Select Student First --</option>
+                                    </select>
+                                    <div id="fee_info" class="form-text mt-1"></div>
                                 </div>
 
                                 <!-- Class Selection -->
@@ -55,9 +66,20 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
+                                    <label for="payment_method" class="form-label">Payment Method <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" name="payment_method" required>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="POS">POS</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="semester_id" class="form-label">Term <span
                                             class="text-danger">*</span></label>
-                                    <select class="form-select" name="semester_id" required>
+                                    <select class="form-select" name="semester_id" id="semester_id" required>
                                         @foreach($semesters as $sem)
                                             <option value="{{ $sem->id }}">{{ $sem->semester_name }}</option>
                                         @endforeach

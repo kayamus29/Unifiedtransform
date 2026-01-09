@@ -9,12 +9,16 @@ use App\Models\SchoolClass;
 use App\Models\SchoolSession;
 use App\Models\Semester;
 use Exception;
+use App\Services\FinancialService;
 
 class PaymentController extends Controller
 {
-    public function __construct()
+    protected $financialService;
+
+    public function __construct(FinancialService $financialService)
     {
         $this->middleware(['auth', 'role:Accountant|Admin']);
+        $this->financialService = $financialService;
     }
 
     public function index(Request $request)
@@ -24,11 +28,14 @@ class PaymentController extends Controller
         $query = StudentPayment::with(['student', 'schoolClass', 'session', 'semester']);
 
         if ($search) {
-            $query->whereHas('student', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('id_card_number', 'like', "%{$search}%"); // ID card number might be in users or promotion table?
-                // Actually, id_card_number is in many places. Let's check User model/table.
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('student', function ($sq) use ($search) {
+                    $sq->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('student.promotions', function ($pq) use ($search) {
+                        $pq->where('id_card_number', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -57,7 +64,13 @@ class PaymentController extends Controller
         $sessions = SchoolSession::all();
         $semesters = Semester::all();
 
-        return view('accounting.payments.create', compact('students', 'classes', 'sessions', 'semesters'));
+        $student_id = request('student_id');
+        $fees = [];
+        if ($student_id) {
+            $fees = StudentFee::where('student_id', $student_id)->where('balance', '>', 0)->get();
+        }
+
+        return view('accounting.payments.create', compact('students', 'classes', 'sessions', 'semesters', 'fees'));
     }
 
     public function store(Request $request)
@@ -85,13 +98,19 @@ class PaymentController extends Controller
 
             $payment = StudentPayment::create([
                 'student_id' => $request->student_id,
+                'student_fee_id' => $request->student_fee_id, // Link to specific fee
                 'class_id' => $request->class_id,
                 'session_id' => $request->school_session_id,
                 'semester_id' => $request->semester_id,
                 'amount_paid' => $request->amount_paid,
+                'payment_method' => $request->payment_method,
                 'transaction_date' => $request->transaction_date,
                 'reference_no' => $request->reference_no ?? $ref,
+                'received_by' => auth()->id(),
             ]);
+
+            // Process the payment through the financial service
+            $this->financialService->recordPayment($payment);
 
             return redirect()->route('accounting.payments.index')->with('success', 'Payment recorded successfully. Ref: ' . $payment->reference_no);
         } catch (Exception $e) {

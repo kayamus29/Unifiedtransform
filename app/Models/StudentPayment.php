@@ -21,12 +21,15 @@ class StudentPayment extends Model
 
     protected $fillable = [
         'student_id',
+        'student_fee_id',
         'class_id',
-        'school_session_id',
+        'session_id',
         'semester_id',
         'amount_paid',
+        'payment_method',
         'transaction_date',
-        'reference_no'
+        'reference_no',
+        'received_by'
     ];
 
     public function student()
@@ -41,11 +44,21 @@ class StudentPayment extends Model
 
     public function session()
     {
-        return $this->belongsTo(SchoolSession::class, 'school_session_id');
+        return $this->belongsTo(SchoolSession::class, 'session_id');
     }
 
     public function semester() // Term
     {
         return $this->belongsTo(Semester::class, 'semester_id');
+    }
+
+    public function studentFee()
+    {
+        return $this->belongsTo(StudentFee::class, 'student_fee_id');
+    }
+
+    public function receiver()
+    {
+        return $this->belongsTo(User::class, 'received_by');
     }
 }

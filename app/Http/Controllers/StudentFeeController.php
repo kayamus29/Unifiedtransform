@@ -53,11 +53,26 @@ class StudentFeeController extends Controller
         ]);
 
         try {
-            StudentFee::create($request->all());
+            $data = $request->all();
+            $data['balance'] = $request->amount;
+            $data['status'] = 'unpaid';
+            $data['amount_paid'] = 0;
+
+            StudentFee::create($data);
             return redirect()->back()->with('success', 'Fee assigned to student successfully.');
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Error assigning fee: ' . $e->getMessage());
         }
+    }
+
+    public function getOutstanding($student_id)
+    {
+        $fees = StudentFee::with(['feeHead', 'session', 'semester'])
+            ->where('student_id', $student_id)
+            ->where('balance', '>', 0)
+            ->get();
+
+        return response()->json($fees);
     }
 
     public function destroy($id)

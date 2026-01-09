@@ -40,10 +40,6 @@ use App\Http\Controllers\Auth\UpdatePasswordController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
 Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
@@ -109,26 +105,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/students/edit/{id}', [UserController::class, 'editStudent'])->name('student.edit.show');
     Route::get('/students/view/list', [UserController::class, 'getStudentList'])->name('student.list.show');
     Route::get('/students/view/profile/{id}', [UserController::class, 'showStudentProfile'])->name('student.profile.show');
+    Route::get('/students/view/financial/{id}', [App\Http\Controllers\StudentFinancialProfileController::class, 'show'])->name('student.financial.show');
     Route::get('/students/view/attendance/{id}', [AttendanceController::class, 'showStudentAttendance'])->name('student.attendance.show');
 
     // Marks
     Route::get('/marks/create', [MarkController::class, 'create'])->name('course.mark.create');
     Route::post('/marks/store', [MarkController::class, 'store'])->name('course.mark.store');
     Route::get('/marks/results', [MarkController::class, 'index'])->name('course.mark.list.show');
-    // Route::get('/marks/view', function () {
-    //     return view('marks.view');
-    // });
     Route::get('/marks/view', [MarkController::class, 'showCourseMark'])->name('course.mark.show');
     Route::get('/marks/final/submit', [MarkController::class, 'showFinalMark'])->name('course.final.mark.submit.show');
     Route::post('/marks/final/submit', [MarkController::class, 'storeFinalMark'])->name('course.final.mark.submit.store');
 
     // Exams
     Route::get('/exams/view', [ExamController::class, 'index'])->name('exam.list.show');
-    // Route::get('/exams/view/history', function () {
-    //     return view('exams.history');
-    // });
     Route::post('/exams/create', [ExamController::class, 'store'])->name('exam.create');
-    // Route::post('/exams/delete', [ExamController::class, 'delete'])->name('exam.delete');
     Route::get('/exams/create', [ExamController::class, 'create'])->name('exam.create.show');
     Route::get('/exams/add-rule', [ExamRuleController::class, 'create'])->name('exam.rule.create');
     Route::post('/exams/add-rule', [ExamRuleController::class, 'store'])->name('exam.rule.store');
@@ -150,6 +140,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Accounting Dashboard
     Route::get('/accounting/dashboard', [App\Http\Controllers\AccountingDashboardController::class, 'index'])->name('accounting.dashboard');
+    Route::get('/accounting/analytics', [App\Http\Controllers\FinancialAnalyticsController::class, 'index'])->name('accounting.analytics.index');
 
     // Fee Heads
     Route::get('/accounting/fees/heads', [App\Http\Controllers\FeeHeadController::class, 'index'])->name('accounting.fees.heads.index');
@@ -163,6 +154,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Student Fees
     Route::get('/accounting/fees/student', [App\Http\Controllers\StudentFeeController::class, 'index'])->name('accounting.fees.student.index');
+    Route::get('/accounting/fees/student/outstanding/{student_id}', [App\Http\Controllers\StudentFeeController::class, 'getOutstanding'])->name('accounting.fees.student.outstanding');
     Route::post('/accounting/fees/student', [App\Http\Controllers\StudentFeeController::class, 'store'])->name('accounting.fees.student.store');
     Route::delete('/accounting/fees/student/{id}', [App\Http\Controllers\StudentFeeController::class, 'destroy'])->name('accounting.fees.student.destroy');
 
@@ -243,6 +235,30 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [App\Http\Controllers\StudentPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/attendance', [App\Http\Controllers\StudentPortalController::class, 'attendance'])->name('attendance');
         Route::get('/marks', [App\Http\Controllers\StudentPortalController::class, 'marks'])->name('marks');
+        Route::get('/fees', [App\Http\Controllers\StudentPortalController::class, 'fees'])->name('fees');
         Route::get('/timetable', [App\Http\Controllers\StudentPortalController::class, 'timetable'])->name('timetable');
     });
+
+    // ===========================================
+    // CMS ADMIN (New Implementation)
+    // ===========================================
+    Route::prefix('admin/cms')->name('admin.cms.')->group(function () {
+        Route::resource('pages', App\Http\Controllers\Admin\CmsPageController::class);
+        Route::resource('posts', App\Http\Controllers\Admin\CmsPostController::class);
+        Route::resource('banners', App\Http\Controllers\Admin\CmsBannerController::class);
+        Route::resource('announcements', App\Http\Controllers\Admin\CmsAnnouncementController::class);
+        Route::get('inquiries', [App\Http\Controllers\Admin\ContactSubmissionController::class, 'index'])->name('inquiries.index');
+        Route::get('inquiries/{submission}', [App\Http\Controllers\Admin\ContactSubmissionController::class, 'show'])->name('inquiries.show');
+        Route::delete('inquiries/{submission}', [App\Http\Controllers\Admin\ContactSubmissionController::class, 'destroy'])->name('inquiries.destroy');
+    });
 });
+
+// ===========================================
+// PUBLIC WEBSITE ROUTES
+// ===========================================
+Route::get('/', [App\Http\Controllers\WebsiteController::class, 'index'])->name('website.home');
+Route::get('/blog', [App\Http\Controllers\WebsiteController::class, 'blog'])->name('website.blog');
+Route::get('/blog/{slug}', [App\Http\Controllers\WebsiteController::class, 'post'])->name('website.post');
+Route::get('/contact', [App\Http\Controllers\WebsiteController::class, 'contact'])->name('website.contact');
+Route::post('/contact', [App\Http\Controllers\WebsiteController::class, 'submitContact'])->name('website.contact.submit');
+Route::get('/{slug}', [App\Http\Controllers\WebsiteController::class, 'page'])->name('website.page');

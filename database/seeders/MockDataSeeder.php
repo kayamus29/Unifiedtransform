@@ -1,165 +1,150 @@
 <?php
 
-namespace Database\Seeders;
-
-use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\SchoolSession;
-use App\Models\Semester;
 use App\Models\SchoolClass;
 use App\Models\Section;
+use App\Models\SchoolSession;
+use App\Models\Semester;
+use App\Models\Course;
+use App\Models\Promotion;
+use App\Models\Attendance;
+use App\Models\Mark;
 use App\Models\FeeHead;
 use App\Models\ClassFee;
 use App\Models\StudentPayment;
 use App\Models\Expense;
+use App\Models\Notice;
+use App\Models\Exam;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-class MockDataSeeder extends Seeder
-{
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        // 1. Create Academic Session
-        $session = SchoolSession::firstOrCreate([
-            'session_name' => '2025-2026'
+require 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+echo "Starting Mock Data Injection..." . PHP_EOL;
+
+// 1. Session
+$currentSession = SchoolSession::where('session_name', '2025-2026')->first();
+$sessionId = $currentSession->id;
+
+// 2. Terms
+$terms = ['First Term', 'Second Term', 'Third Term'];
+foreach ($terms as $name) {
+    Semester::firstOrCreate(['semester_name' => $name, 'session_id' => $sessionId]);
+}
+$semesterId = Semester::where('session_id', $sessionId)->first()->id;
+
+// 3. Classes and Courses
+$classes = SchoolClass::all();
+$sections = Section::all();
+$courseNames = ['Mathematics', 'English Language', 'Physics', 'Chemistry'];
+
+foreach ($classes as $class) {
+    foreach ($courseNames as $cName) {
+        Course::firstOrCreate([
+            'course_name' => $cName,
+            'class_id' => $class->id,
+            'session_id' => $sessionId,
+            'semester_id' => $semesterId
+        ], [
+            'course_type' => 'Theory'
         ]);
+    }
+}
+echo "Courses created." . PHP_EOL;
 
-        // 2. Create Semesters (Terms)
-        $term1 = Semester::firstOrCreate(['semester_name' => 'First Term', 'session_id' => $session->id], [
-            'start_date' => Carbon::now()->startOfYear(),
-            'end_date' => Carbon::now()->startOfYear()->addMonths(3)
-        ]);
-        $term2 = Semester::firstOrCreate(['semester_name' => 'Second Term', 'session_id' => $session->id], [
-            'start_date' => Carbon::now()->startOfYear()->addMonths(4),
-            'end_date' => Carbon::now()->startOfYear()->addMonths(7)
-        ]);
-        $term3 = Semester::firstOrCreate(['semester_name' => 'Third Term', 'session_id' => $session->id], [
-            'start_date' => Carbon::now()->startOfYear()->addMonths(8),
-            'end_date' => Carbon::now()->endOfYear()
-        ]);
+// 4. Students and Promotion
+$students = User::role('Student')->get();
+foreach ($students as $index => $student) {
+    $class = $classes[$index % $classes->count()];
+    $section = $sections->where('class_id', $class->id)->first() ?? $sections->first();
 
-        // 3. Create Classes
-        $classes = ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
-        $createdClasses = [];
+    Promotion::firstOrCreate(
+        ['student_id' => $student->id, 'session_id' => $sessionId],
+        ['class_id' => $class->id, 'section_id' => $section->id, 'id_card_number' => 'STD-' . str_pad($student->id, 5, '0', STR_PAD_LEFT)]
+    );
+}
+echo "Students promoted." . PHP_EOL;
 
-        foreach ($classes as $className) {
-            $class = SchoolClass::firstOrCreate(
-                ['class_name' => $className, 'session_id' => $session->id]
-            );
-            $createdClasses[] = $class;
-
-            // Create Sections
-            Section::firstOrCreate(
-                ['section_name' => 'A', 'class_id' => $class->id],
-                ['room_no' => $class->id . '01', 'session_id' => $session->id]
-            );
-            Section::firstOrCreate(
-                ['section_name' => 'B', 'class_id' => $class->id],
-                ['room_no' => $class->id . '02', 'session_id' => $session->id]
-            );
-        }
-
-        // 4. Create Fee Heads
-        $feeHeads = [
-            'Tuition Fee' => 50000,
-            'Development Levy' => 5000,
-            'ICT Fee' => 2000,
-            'Medical Fee' => 1000,
-            'PTA Levy' => 1500,
-        ];
-
-        $createdFeeHeads = [];
-        foreach ($feeHeads as $name => $defaultAmount) {
-            $createdFeeHeads[$name] = FeeHead::firstOrCreate(['name' => $name]);
-        }
-
-        // 5. Assign Fees to Classes (ClassFee)
-        foreach ($createdClasses as $class) {
-            foreach ($feeHeads as $name => $amount) {
-                // Vary amount slightly per class for realism
-                $classAmount = $amount + ($class->id * 100);
-
-                ClassFee::firstOrCreate([
-                    'class_id' => $class->id,
-                    'fee_head_id' => $createdFeeHeads[$name]->id,
-                ], [
-                    'amount' => $classAmount,
-                    'description' => 'Termly ' . $name
+// 5. Attendance (Simulated)
+echo "Generating Attendance..." . PHP_EOL;
+for ($i = 0; $i < 5; $i++) {
+    $date = Carbon::now()->subDays($i);
+    foreach ($students->take(10) as $student) {
+        $promo = Promotion::where('student_id', $student->id)->where('session_id', $sessionId)->first();
+        if ($promo) {
+            $course = Course::where('class_id', $promo->class_id)->first();
+            if ($course) {
+                Attendance::create([
+                    'student_id' => $student->id,
+                    'class_id' => $promo->class_id,
+                    'section_id' => $promo->section_id,
+                    'course_id' => $course->id,
+                    'session_id' => $sessionId,
+                    'status' => (rand(0, 10) > 2) ? 'Present' : 'Absent',
+                    'created_at' => $date,
+                    'updated_at' => $date
                 ]);
             }
         }
+    }
+}
 
-        // 6. Create Students (Users) and Payments
-        // Using a transaction for speed
-        DB::transaction(function () use ($createdClasses, $session, $term1, $createdFeeHeads) {
-            $faker = \Faker\Factory::create();
+// 6. Exams and Marks
+echo "Generating Marks..." . PHP_EOL;
+foreach ($students->take(10) as $student) {
+    $promo = Promotion::where('student_id', $student->id)->where('session_id', $sessionId)->first();
+    if ($promo) {
+        $course = Course::where('class_id', $promo->class_id)->first();
+        if ($course) {
+            $exam = Exam::firstOrCreate([
+                'exam_name' => 'Continuous Assessment - ' . $course->course_name,
+                'course_id' => $course->id,
+                'session_id' => $sessionId
+            ], [
+                'start_date' => Carbon::now(),
+                'end_date' => Carbon::now()->addDays(7),
+                'semester_id' => $semesterId,
+                'class_id' => $promo->class_id
+            ]);
 
-            foreach ($createdClasses as $class) {
-                for ($i = 0; $i < 10; $i++) { // 10 students per class
-                    $student = User::create([
-                        'first_name' => $faker->firstName,
-                        'last_name' => $faker->lastName,
-                        'email' => $faker->unique()->safeEmail,
-                        'password' => Hash::make('password'),
-                        'role' => 'student',
-                        // Add other required fields based on User model if any (e.g., gender, etc.)
-                        'gender' => $faker->randomElement(['male', 'female']),
-                        'nationality' => 'Nigerian',
-                        'phone' => $faker->phoneNumber,
-                        'address' => $faker->address,
-                        'address2' => $faker->streetAddress,
-                        'city' => 'Ikeja',
-                        'zip' => $faker->postcode,
-                        'birthday' => $faker->date(),
-                        'blood_type' => $faker->randomElement(['A+', 'O+', 'B+']),
-                        'religion' => $faker->randomElement(['Christianity', 'Islam']),
-                    ]);
-
-                    // Assign student to class (if there's a pivot table or direct column)
-                    // Assuming User model has class_id based on standard school apps, or there's a promotion table.
-                    // Checking existing schema for students would be good, but for now assuming 'student' role logic handles it or we need a StudentRecord. 
-                    // NOTE: UnifiedTransform often uses a separate table for enrollment or updates User. 
-                    // Let's assume User has no class_id and rely on 'Promotions' or similar if needed.
-                    // BUT for Payment, we link Student + Class directly.
-
-                    // 7. Generate Payments
-                    // Random payment status: Paid, Partial, unpaid
-                    $status = $faker->randomElement(['full', 'partial', 'none']);
-
-                    if ($status !== 'none') {
-                        $totalFees = ClassFee::where('class_id', $class->id)->sum('amount');
-                        $amountPaid = ($status == 'full') ? $totalFees : $faker->numberBetween(5000, $totalFees - 1000);
-
-                        StudentPayment::create([
-                            'student_id' => $student->id,
-                            'class_id' => $class->id,
-                            'school_session_id' => $session->id,
-                            'semester_id' => $term1->id,
-                            'amount_paid' => $amountPaid,
-                            'transaction_date' => $faker->dateTimeBetween('-1 month', 'now'),
-                            'reference_no' => 'PAY-' . strtoupper($faker->bothify('??####')),
-                        ]);
-                    }
-                }
-            }
-        });
-
-        // 8. Create Expenses
-        $expenseCategories = ['Stationery', 'Fuel', 'Cleaning Supplies', 'Repairs', 'Internet Subscription'];
-        $faker = \Faker\Factory::create();
-        for ($j = 0; $j < 15; $j++) {
-            Expense::create([
-                'title' => $faker->randomElement($expenseCategories),
-                'amount' => $faker->numberBetween(2000, 50000),
-                'expense_date' => $faker->dateTimeBetween('-1 month', 'now'),
-                'description' => $faker->sentence,
+            Mark::create([
+                'student_id' => $student->id,
+                'course_id' => $course->id,
+                'exam_id' => $exam->id,
+                'session_id' => $sessionId,
+                'class_id' => $promo->class_id,
+                'section_id' => $promo->section_id,
+                'marks' => rand(60, 90)
             ]);
         }
     }
 }
+
+// 7. Accounting
+echo "Generating Accounting..." . PHP_EOL;
+$heads = ['Tuition', 'Library'];
+foreach ($heads as $h) {
+    $head = FeeHead::firstOrCreate(['name' => $h]);
+    foreach ($classes as $class) {
+        ClassFee::firstOrCreate([
+            'class_id' => $class->id,
+            'fee_head_id' => $head->id,
+            'session_id' => $sessionId,
+            'semester_id' => $semesterId
+        ], [
+            'amount' => rand(1000, 5000),
+            'description' => "Termly $h fee"
+        ]);
+    }
+}
+
+// 8. Notices
+Notice::create([
+    'notice' => 'Mock data generated successfully for testing.',
+    'session_id' => $sessionId
+]);
+
+echo "All mock data injected successfully!" . PHP_EOL;

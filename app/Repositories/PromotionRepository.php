@@ -4,9 +4,16 @@ namespace App\Repositories;
 
 use App\Models\User;
 use App\Models\Promotion;
+use App\Services\FinancialService;
 
 class PromotionRepository
 {
+    protected $financialService;
+
+    public function __construct(FinancialService $financialService)
+    {
+        $this->financialService = $financialService;
+    }
     public function assignClassSection($request, $student_id)
     {
         try {
@@ -45,6 +52,9 @@ class PromotionRepository
                 ], [
                     'id_card_number' => $row['id_card_number'],
                 ]);
+
+                // Trigger arrears carry-forward for each promoted student
+                $this->financialService->carryForwardArrears($row['student_id'], $row['session_id'], $row['semester_id']);
             }
         } catch (\Exception $e) {
             throw new \Exception('Failed to promote students. ' . $e->getMessage());

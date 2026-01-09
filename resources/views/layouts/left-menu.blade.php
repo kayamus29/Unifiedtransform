@@ -141,6 +141,12 @@
                                     class="bi bi-journal-medical"></i> <span
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Courses</span></a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('fees') ? 'active' : '' }}"
+                                href="{{route('fees')}}"><i
+                                    class="bi bi-wallet2"></i> <span
+                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">My Fees</span></a>
+                        </li>
 
             @endif
             @if(!Auth::user()->hasRole('Student') && !Auth::user()->hasRole('Accountant') && Auth::user()->role != 'accountant')
@@ -231,7 +237,10 @@
                         id="accounting-submenu">
                         <li class="nav-item w-100" {{ request()->routeIs('accounting.dashboard') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                 href="{{route('accounting.dashboard')}}"><i class="bi bi-speedometer2 me-2"></i>
-                                Dashboard</a></li>
+                                Summary</a></li>
+                        <li class="nav-item w-100" {{ request()->routeIs('accounting.analytics.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link text-success"
+                                href="{{route('accounting.analytics.index')}}"><i class="bi bi-graph-up-arrow me-2"></i>
+                                Analytics</a></li>
                         <li class="nav-item w-100" {{ request()->routeIs('accounting.fees.heads.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                 href="{{route('accounting.fees.heads.index')}}"><i class="bi bi-list-check me-2"></i> Fee
                                 Heads</a></li>

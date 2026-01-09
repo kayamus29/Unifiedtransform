@@ -30,10 +30,15 @@ class ExamRepository implements ExamInterface
     public function getAll($session_id, $semester_id, $class_id)
     {
         if ($semester_id == 0 || $class_id == 0) {
-            $semester_id = Semester::where('session_id', $session_id)
-                ->first()->id;
-            $class_id = SchoolClass::where('session_id', $session_id)
-                ->first()->id;
+            $semester = Semester::where('session_id', $session_id)->first();
+            $schoolClass = SchoolClass::where('session_id', $session_id)->first();
+
+            if (!$semester || !$schoolClass) {
+                return collect([]);
+            }
+
+            $semester_id = $semester->id;
+            $class_id = $schoolClass->id;
         }
         return Exam::with(['course', 'examRule'])->where('session_id', $session_id)
             ->where('semester_id', $semester_id)

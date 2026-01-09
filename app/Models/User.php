@@ -97,47 +97,21 @@ class User extends Authenticatable
         return $this->hasMany(Mark::class, 'student_id', 'id');
     }
 
+    /**
+     * Get the promotions.
+     */
+    public function promotions()
+    {
+        return $this->hasMany(Promotion::class, 'student_id', 'id');
+    }
+
     public function getTotalOutstandingBalance()
     {
-        // 1. Get all promotions to find all classes/sessions the student was in
-        $promotions = Promotion::where('student_id', $this->id)->get();
-        $totalExpected = 0;
-
-        foreach ($promotions as $promo) {
-            // Get class fees for this class. 
-            // If session_id is set on ClassFee, filter by it. 
-            // If nullable, it applies to all sessions (legacy or universal fees).
-            $totalExpected += ClassFee::where('class_id', $promo->class_id)
-                ->where(function ($q) use ($promo) {
-                    $q->whereNull('session_id')->orWhere('session_id', $promo->session_id);
-                })
-                ->sum('amount');
-        }
-
-        // 2. Add student-specific fees
-        $totalExpected += StudentFee::where('student_id', $this->id)->sum('amount');
-
-        // 3. Subtract all payments made by the student
-        $totalPaid = StudentPayment::where('student_id', $this->id)->sum('amount_paid');
-
-        return $totalExpected - $totalPaid;
+        return StudentFee::where('student_id', $this->id)->whereNull('transferred_to_id')->sum('balance');
     }
 
     public function getTotalFees()
     {
-        $promotions = Promotion::where('student_id', $this->id)->get();
-        $totalExpected = 0;
-
-        foreach ($promotions as $promo) {
-            $totalExpected += ClassFee::where('class_id', $promo->class_id)
-                ->where(function ($q) use ($promo) {
-                    $q->whereNull('session_id')->orWhere('session_id', $promo->session_id);
-                })
-                ->sum('amount');
-        }
-
-        $totalExpected += StudentFee::where('student_id', $this->id)->sum('amount');
-
-        return $totalExpected;
+        return StudentFee::where('student_id', $this->id)->whereNull('transferred_to_id')->sum('amount');
     }
 }

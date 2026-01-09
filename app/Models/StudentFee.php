@@ -14,7 +14,13 @@ class StudentFee extends Model
         'fee_head_id',
         'session_id',
         'semester_id',
+        'fee_type',
+        'reference',
         'amount',
+        'amount_paid',
+        'balance',
+        'status',
+        'transferred_to_id',
         'description'
     ];
 
@@ -36,5 +42,20 @@ class StudentFee extends Model
     public function semester()
     {
         return $this->belongsTo(Semester::class, 'semester_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(StudentPayment::class, 'student_fee_id');
+    }
+
+    public function transferredTo()
+    {
+        return $this->belongsTo(StudentFee::class, 'transferred_to_id');
+    }
+
+    public function transferredFrom()
+    {
+        return $this->hasOne(StudentFee::class, 'transferred_to_id');
     }
 }

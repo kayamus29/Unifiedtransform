@@ -9,6 +9,8 @@ use App\Models\Mark;
 use App\Models\Routine;
 use App\Models\Notice;
 use App\Models\Promotion;
+use App\Models\StudentFee;
+use App\Models\StudentPayment;
 use App\Traits\SchoolSession;
 use App\Interfaces\SchoolSessionInterface;
 
@@ -130,5 +132,25 @@ class StudentPortalController extends Controller
         }
 
         return view('student.timetable', compact('routines', 'student'));
+    }
+
+    /**
+     * View financial history (read-only)
+     */
+    public function fees()
+    {
+        $student = Auth::user();
+
+        $fees = StudentFee::with(['feeHead', 'session', 'semester'])
+            ->where('student_id', $student->id)
+            ->latest()
+            ->get();
+
+        $payments = StudentPayment::with(['schoolClass', 'session', 'semester', 'receiver', 'studentFee.feeHead'])
+            ->where('student_id', $student->id)
+            ->latest()
+            ->get();
+
+        return view('student.fees', compact('student', 'fees', 'payments'));
     }
 }
