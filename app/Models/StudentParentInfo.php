@@ -17,7 +17,6 @@ class StudentParentInfo extends Model
      */
     protected $fillable = [
         'student_id',
-        'parent_user_id',
         'father_name',
         'father_phone',
         'mother_name',
@@ -33,13 +32,5 @@ class StudentParentInfo extends Model
     public function student()
     {
         return $this->belongsTo(User::class, 'student_id');
-    }
-
-    /**
-     * Get the parent user account.
-     */
-    public function parent()
-    {
-        return $this->belongsTo(User::class, 'parent_user_id');
     }
 }

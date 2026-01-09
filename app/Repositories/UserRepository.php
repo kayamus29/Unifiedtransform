@@ -38,8 +38,9 @@ class UserRepository implements UserInterface
                     'zip' => $request['zip'],
                     'photo' => (!empty($request['photo'])) ? $this->convert($request['photo']) : null,
                     'role' => 'teacher',
-                    'password' => Hash::make($request['password']),
+                    'password' => Hash::make($request['password'] ?? 'password'),
                 ]);
+                $user->assignRole('Teacher');
                 $user->givePermissionTo(
                     'create exams',
                     'view exams',
@@ -89,8 +90,10 @@ class UserRepository implements UserInterface
                     'religion' => $request['religion'],
                     'blood_type' => $request['blood_type'],
                     'role' => 'student',
-                    'password' => Hash::make($request['password']),
+                    'password' => Hash::make($request['password'] ?? 'password'),
                 ]);
+
+                $student->assignRole('Student');
 
                 // Store Parents' information
                 $studentParentInfoRepository = new StudentParentInfoRepository();

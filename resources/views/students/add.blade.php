@@ -46,10 +46,10 @@
                                             value="{{old('email')}}">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="inputPassword4" class="form-label">Password<sup><i
-                                                    class="bi bi-asterisk text-primary"></i></sup></label>
+                                        <label for="inputPassword4" class="form-label">Password <span
+                                                class="text-muted small">(Default: password)</span></label>
                                         <input type="password" class="form-control" id="inputPassword4" name="password"
-                                            required>
+                                            placeholder="Enter password or leave blank for default">
                                     </div>
                                     <div class="col-md-3">
                                         <label for="formFile" class="form-label">Photo</label>
