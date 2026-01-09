@@ -12,6 +12,11 @@ use Exception;
 
 class PaymentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:Accountant|Admin']);
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');

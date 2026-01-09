@@ -8,6 +8,11 @@ use Exception;
 
 class FeeHeadController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'role:Accountant|Admin']);
+    }
+
     public function index()
     {
         $feeHeads = FeeHead::all();

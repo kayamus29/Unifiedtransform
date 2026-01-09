@@ -12,8 +12,7 @@ class ExpenseController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['can:manage expenses|create expenses']);
-        $this->middleware(['can:manage expenses'])->only(['updateStatus', 'correct']);
+        $this->middleware(['auth', 'role:Accountant|Admin']);
     }
 
     public function index()

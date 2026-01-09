@@ -227,7 +227,7 @@
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Promotion</span></a>
                 </li>
             @endif
-            @if (Auth::user()->hasRole('Admin'))
+            @if (Auth::user()->hasAnyRole(['Admin', 'Accountant']))
                 <li class="nav-item">
                     <a type="button" href="#accounting-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('accounting*') ? 'active' : '' }}"><i

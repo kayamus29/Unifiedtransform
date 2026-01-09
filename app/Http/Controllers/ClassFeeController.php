@@ -20,6 +20,7 @@ class ClassFeeController extends Controller
 
     public function __construct(SchoolSessionInterface $schoolSessionRepository)
     {
+        $this->middleware(['auth', 'role:Accountant|Admin']);
         $this->schoolSessionRepository = $schoolSessionRepository;
     }
 
