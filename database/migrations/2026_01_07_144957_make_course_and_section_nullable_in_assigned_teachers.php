@@ -15,9 +15,8 @@ class MakeCourseAndSectionNullableInAssignedTeachers extends Migration
     public function up()
     {
         Schema::table('assigned_teachers', function (Blueprint $table) {
-            // Using DB query to bypass doctrine/dbal dependency
-            DB::statement("ALTER TABLE assigned_teachers MODIFY course_id INT UNSIGNED NULL");
-            DB::statement("ALTER TABLE assigned_teachers MODIFY section_id INT UNSIGNED NULL");
+            $table->unsignedInteger('course_id')->nullable()->change();
+            $table->unsignedInteger('section_id')->nullable()->change();
         });
     }
 
@@ -29,8 +28,8 @@ class MakeCourseAndSectionNullableInAssignedTeachers extends Migration
     public function down()
     {
         Schema::table('assigned_teachers', function (Blueprint $table) {
-            DB::statement("ALTER TABLE assigned_teachers MODIFY course_id INT UNSIGNED NOT NULL");
-            DB::statement("ALTER TABLE assigned_teachers MODIFY section_id INT UNSIGNED NOT NULL");
+            $table->unsignedInteger('course_id')->nullable(false)->change();
+            $table->unsignedInteger('section_id')->nullable(false)->change();
         });
     }
 }
