@@ -23,12 +23,16 @@ class UserController extends Controller
     protected $schoolSessionRepository;
     protected $schoolClassRepository;
     protected $schoolSectionRepository;
+    protected $promotionRepository;
+    protected $studentParentInfoRepository;
 
     public function __construct(
         UserInterface $userRepository,
         SchoolSessionInterface $schoolSessionRepository,
         SchoolClassInterface $schoolClassRepository,
-        SectionInterface $schoolSectionRepository
+        SectionInterface $schoolSectionRepository,
+        PromotionRepository $promotionRepository,
+        StudentParentInfoRepository $studentParentInfoRepository
     ) {
         $this->middleware(['can:view-student-list']);
 
@@ -36,6 +40,8 @@ class UserController extends Controller
         $this->schoolSessionRepository = $schoolSessionRepository;
         $this->schoolClassRepository = $schoolClassRepository;
         $this->schoolSectionRepository = $schoolSectionRepository;
+        $this->promotionRepository = $promotionRepository;
+        $this->studentParentInfoRepository = $studentParentInfoRepository;
     }
 
     /**
@@ -201,8 +207,7 @@ class UserController extends Controller
         $student = $this->userRepository->findStudent($id);
 
         $current_school_session_id = $this->getSchoolCurrentSession();
-        $promotionRepository = new PromotionRepository();
-        $promotion_info = $promotionRepository->getPromotionInfoById($current_school_session_id, $id);
+        $promotion_info = $this->promotionRepository->getPromotionInfoById($current_school_session_id, $id);
 
         $data = [
             'student' => $student,
@@ -256,11 +261,9 @@ class UserController extends Controller
     public function editStudent($student_id)
     {
         $student = $this->userRepository->findStudent($student_id);
-        $studentParentInfoRepository = new StudentParentInfoRepository();
-        $parent_info = $studentParentInfoRepository->getParentInfo($student_id);
-        $promotionRepository = new PromotionRepository();
+        $parent_info = $this->studentParentInfoRepository->getParentInfo($student_id);
         $current_school_session_id = $this->getSchoolCurrentSession();
-        $promotion_info = $promotionRepository->getPromotionInfoById($current_school_session_id, $student_id);
+        $promotion_info = $this->promotionRepository->getPromotionInfoById($current_school_session_id, $student_id);
 
         $data = [
             'student' => $student,

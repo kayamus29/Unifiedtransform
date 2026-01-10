@@ -17,6 +17,20 @@ class UserRepository implements UserInterface
 {
     use Base64ToFile;
 
+    protected $promotionRepository;
+    protected $studentParentInfoRepository;
+    protected $studentAcademicInfoRepository;
+
+    public function __construct(
+        PromotionRepository $promotionRepository,
+        StudentParentInfoRepository $studentParentInfoRepository,
+        StudentAcademicInfoRepository $studentAcademicInfoRepository
+    ) {
+        $this->promotionRepository = $promotionRepository;
+        $this->studentParentInfoRepository = $studentParentInfoRepository;
+        $this->studentAcademicInfoRepository = $studentAcademicInfoRepository;
+    }
+
     /**
      * @param mixed $request
      * @return string
@@ -52,7 +66,9 @@ class UserRepository implements UserInterface
                     'view attendances',
                     'create assignments',
                     'view assignments',
+                    'manage marks',
                     'save marks',
+                    'view marks',
                     'view users',
                     'view assigned students',
                     'view routines',
@@ -96,16 +112,13 @@ class UserRepository implements UserInterface
                 $student->assignRole('Student');
 
                 // Store Parents' information
-                $studentParentInfoRepository = new StudentParentInfoRepository();
-                $studentParentInfoRepository->store($request, $student->id);
+                $this->studentParentInfoRepository->store($request, $student->id);
 
                 // Store Academic information
-                $studentAcademicInfoRepository = new StudentAcademicInfoRepository();
-                $studentAcademicInfoRepository->store($request, $student->id);
+                $this->studentAcademicInfoRepository->store($request, $student->id);
 
                 // Assign student to a Class and a Section
-                $promotionRepository = app(PromotionRepository::class);
-                $promotionRepository->assignClassSection($request, $student->id);
+                $this->promotionRepository->assignClassSection($request, $student->id);
 
                 $student->givePermissionTo(
                     'view attendances',
@@ -146,12 +159,10 @@ class UserRepository implements UserInterface
                 ]);
 
                 // Update Parents' information
-                $studentParentInfoRepository = new StudentParentInfoRepository();
-                $studentParentInfoRepository->update($request, $request['student_id']);
+                $this->studentParentInfoRepository->update($request, $request['student_id']);
 
                 // Update Student's ID card number
-                $promotionRepository = app(PromotionRepository::class);
-                $promotionRepository->update($request, $request['student_id']);
+                $this->promotionRepository->update($request, $request['student_id']);
             });
         } catch (\Exception $e) {
             throw new \Exception('Failed to update Student. ' . $e->getMessage());
@@ -196,8 +207,7 @@ class UserRepository implements UserInterface
 
         }
         try {
-            $promotionRepository = new PromotionRepository();
-            return $promotionRepository->getAll($session_id, $class_id, $section_id);
+            return $this->promotionRepository->getAll($session_id, $class_id, $section_id);
         } catch (\Exception $e) {
             throw new \Exception('Failed to get all Students. ' . $e->getMessage());
         }
@@ -205,14 +215,12 @@ class UserRepository implements UserInterface
 
     public function getAllStudentsBySession($session_id)
     {
-        $promotionRepository = new PromotionRepository();
-        return $promotionRepository->getAllStudentsBySession($session_id);
+        return $this->promotionRepository->getAllStudentsBySession($session_id);
     }
 
     public function getAllStudentsBySessionCount($session_id)
     {
-        $promotionRepository = new PromotionRepository();
-        return $promotionRepository->getAllStudentsBySessionCount($session_id);
+        return $this->promotionRepository->getAllStudentsBySessionCount($session_id);
     }
 
     public function findStudent($id)

@@ -20,6 +20,8 @@ use App\Repositories\GradingSystemRepository;
 use App\Models\SchoolClass;
 use App\Models\AssignedTeacher;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use App\Models\ExamRule;
 
 class MarkController extends Controller
 {
@@ -248,14 +250,51 @@ class MarkController extends Controller
         ]);
 
         $rows = [];
+        $errors = [];
         if ($request->student_mark) {
+            // 1. Get all relevant Exam IDs from the request
+            $examIds = [];
+            foreach ($request->student_mark as $stm) {
+                foreach (array_keys($stm) as $examId) {
+                    $examIds[] = $examId;
+                }
+            }
+            $examIds = array_unique($examIds);
+
+            // 2. Fetch ExamRules for these exams
+            $examRules = ExamRule::whereIn('exam_id', $examIds)->get()->keyBy('exam_id');
+
             foreach ($request->student_mark as $id => $stm) {
                 foreach ($stm as $exam => $breakdown) {
                     $row = [];
                     $row['class_id'] = $request->class_id;
                     $row['student_id'] = $id;
 
-                    $cleanBreakdown = array_map('intval', (array) $breakdown);
+                    $cleanBreakdown = array_map('floatval', (array) $breakdown); // Use floatval for decimals
+
+                    // --- Validation Start ---
+                    if (isset($examRules[$exam])) {
+                        $rule = $examRules[$exam];
+                        $definedBreakdown = $rule->marks_breakdown; // Array of [name, weight]
+
+                        if ($definedBreakdown) {
+                            foreach ($definedBreakdown as $component) {
+                                $slug = Str::slug($component['name'], '_');
+                                $weight = $component['weight'];
+
+                                // Check if this component is in the submitted breakdown
+                                if (isset($cleanBreakdown[$slug])) {
+                                    if ($cleanBreakdown[$slug] > $weight) {
+                                        $student = $this->userRepository->findStudent($id); // Helper to get student name
+                                        $studentName = $student ? $student->first_name . ' ' . $student->last_name : 'Student #' . $id;
+                                        $errors[] = "Mark for {$component['name']} for {$studentName} ({$cleanBreakdown[$slug]}) exceeds maximum weight of {$weight}.";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // --- Validation End ---
+
                     $total = array_sum($cleanBreakdown);
                     $row['marks'] = $total;
                     $row['breakdown_marks'] = $cleanBreakdown;
@@ -272,6 +311,10 @@ class MarkController extends Controller
                     $rows[] = $row;
                 }
             }
+        }
+
+        if (count($errors) > 0) {
+            return back()->withError(implode('<br>', $errors))->withInput();
         }
 
         try {

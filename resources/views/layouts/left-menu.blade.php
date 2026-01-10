@@ -162,10 +162,10 @@
                         <li class="nav-item w-100" {{ request()->routeIs('exam.list.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link" href="{{route('exam.list.show')}}"><i
                                     class="bi bi-file-text me-2"></i>
                                 View Exams</a></li>
-                        @if (Auth::user()->hasAnyRole(['Admin', 'Teacher']))
+                        {{-- @if (Auth::user()->hasAnyRole(['Admin', 'Teacher']))
                             <li class="nav-item w-100" {{ request()->routeIs('exam.create.show') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link" href="{{route('exam.create.show')}}"><i
                                         class="bi bi-file-plus me-2"></i> Create Exams</a></li>
-                        @endif
+                        @endif --}}
                         @if (Auth::user()->hasRole('Admin'))
                             <li class="nav-item w-100" {{ request()->routeIs('exam.grade.system.create') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                     href="{{route('exam.grade.system.create')}}"><i class="bi bi-file-plus me-2"></i> Add Grade

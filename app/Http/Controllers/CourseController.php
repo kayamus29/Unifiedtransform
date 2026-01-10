@@ -19,11 +19,16 @@ class CourseController extends Controller
     use SchoolSession;
     protected $schoolCourseRepository;
     protected $schoolSessionRepository;
+    protected $promotionRepository;
 
-    public function __construct(SchoolSessionInterface $schoolSessionRepository, CourseInterface $schoolCourseRepository)
-    {
+    public function __construct(
+        SchoolSessionInterface $schoolSessionRepository,
+        CourseInterface $schoolCourseRepository,
+        PromotionRepository $promotionRepository
+    ) {
         $this->schoolSessionRepository = $schoolSessionRepository;
         $this->schoolCourseRepository = $schoolCourseRepository;
+        $this->promotionRepository = $promotionRepository;
     }
 
     // Helper: Scoped Class Query (Returns Builder)
@@ -119,8 +124,7 @@ class CourseController extends Controller
         }
 
         $current_school_session_id = $this->getSchoolCurrentSession();
-        $promotionRepository = new PromotionRepository();
-        $class_info = $promotionRepository->getPromotionInfoById($current_school_session_id, $student_id);
+        $class_info = $this->promotionRepository->getPromotionInfoById($current_school_session_id, $student_id);
 
         // Scope Check? accessing courses of a class. Public info for that class effectively.
         // But let's be safe.

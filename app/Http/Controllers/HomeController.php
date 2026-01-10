@@ -21,6 +21,9 @@ class HomeController extends Controller
     protected $schoolSessionRepository;
     protected $schoolClassRepository;
     protected $userRepository;
+    protected $promotionRepository;
+    protected $noticeRepository;
+
     /**
      * Create a new controller instance.
      *
@@ -29,12 +32,16 @@ class HomeController extends Controller
     public function __construct(
         UserInterface $userRepository,
         SchoolSessionInterface $schoolSessionRepository,
-        SchoolClassInterface $schoolClassRepository
+        SchoolClassInterface $schoolClassRepository,
+        PromotionRepository $promotionRepository,
+        NoticeRepository $noticeRepository
     ) {
         // $this->middleware('auth');
         $this->userRepository = $userRepository;
         $this->schoolSessionRepository = $schoolSessionRepository;
         $this->schoolClassRepository = $schoolClassRepository;
+        $this->promotionRepository = $promotionRepository;
+        $this->noticeRepository = $noticeRepository;
     }
 
     /**
@@ -58,14 +65,11 @@ class HomeController extends Controller
 
         $studentCount = $this->userRepository->getAllStudentsBySessionCount($current_school_session_id);
 
-        $promotionRepository = new PromotionRepository();
-
-        $maleStudentsBySession = $promotionRepository->getMaleStudentsBySessionCount($current_school_session_id);
+        $maleStudentsBySession = $this->promotionRepository->getMaleStudentsBySessionCount($current_school_session_id);
 
         $teacherCount = $this->userRepository->getAllTeachers()->count();
 
-        $noticeRepository = new NoticeRepository();
-        $notices = $noticeRepository->getAll($current_school_session_id);
+        $notices = $this->noticeRepository->getAll($current_school_session_id);
 
         $user = Auth::user();
         $absentStaff = [];

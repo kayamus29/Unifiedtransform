@@ -20,23 +20,26 @@ class PromotionController extends Controller
     protected $userRepository;
     protected $schoolClassRepository;
     protected $schoolSectionRepository;
+    protected $promotionRepository;
 
     /**
-    * Create a new Controller instance
-    * 
-    * @param SchoolSessionInterface $schoolSessionRepository
-    * @return void
-    */
+     * Create a new Controller instance
+     * 
+     * @param SchoolSessionInterface $schoolSessionRepository
+     * @return void
+     */
     public function __construct(
         SchoolSessionInterface $schoolSessionRepository,
         UserInterface $userRepository,
         SchoolClassInterface $schoolClassRepository,
-        SectionInterface $schoolSectionRepository
+        SectionInterface $schoolSectionRepository,
+        PromotionRepository $promotionRepository
     ) {
         $this->schoolSessionRepository = $schoolSessionRepository;
         $this->userRepository = $userRepository;
         $this->schoolClassRepository = $schoolClassRepository;
         $this->schoolSectionRepository = $schoolSectionRepository;
+        $this->promotionRepository = $promotionRepository;
     }
     /**
      * Display a listing of the resource.
@@ -48,28 +51,27 @@ class PromotionController extends Controller
     {
         $class_id = $request->query('class_id', 0);
 
-        $promotionRepository = new PromotionRepository();
         $previousSession = $this->schoolSessionRepository->getPreviousSession();
 
-        if(count($previousSession) < 1) {
+        if (count($previousSession) < 1) {
             return back()->withError('No previous session');
         }
 
-        $previousSessionClasses = $promotionRepository->getClasses($previousSession['id']);
+        $previousSessionClasses = $this->promotionRepository->getClasses($previousSession['id']);
 
-        $previousSessionSections = $promotionRepository->getSections($previousSession['id'], $class_id);
+        $previousSessionSections = $this->promotionRepository->getSections($previousSession['id'], $class_id);
 
         $current_school_session_id = $this->getSchoolCurrentSession();
-        $currentSessionSections = $promotionRepository->getSectionsBySession($current_school_session_id);
+        $currentSessionSections = $this->promotionRepository->getSectionsBySession($current_school_session_id);
 
         $currentSessionSectionsCounts = $currentSessionSections->count();
 
         $data = [
-            'previousSessionClasses'        => $previousSessionClasses,
-            'class_id'                      => $class_id,
-            'previousSessionSections'       => $previousSessionSections,
-            'currentSessionSectionsCounts'  => $currentSessionSectionsCounts,
-            'previousSessionId'             => $previousSession['id'],
+            'previousSessionClasses' => $previousSessionClasses,
+            'class_id' => $class_id,
+            'previousSessionSections' => $previousSessionSections,
+            'currentSessionSectionsCounts' => $currentSessionSectionsCounts,
+            'previousSessionId' => $previousSession['id'],
         ];
 
         return view('promotions.index', $data);
@@ -87,9 +89,9 @@ class PromotionController extends Controller
         $section_id = $request->query('previous_section_id');
         $session_id = $request->query('previousSessionId');
 
-        try{
+        try {
 
-            if($class_id == null || $section_id == null ||$session_id == null) {
+            if ($class_id == null || $section_id == null || $session_id == null) {
                 return abort(404);
             }
 
@@ -103,10 +105,10 @@ class PromotionController extends Controller
             $school_classes = $this->schoolClassRepository->getAllBySession($latest_school_session->id);
 
             $data = [
-                'students'      => $students,
-                'schoolClass'   => $schoolClass,
-                'section'       => $section,
-                'school_classes'=> $school_classes,
+                'students' => $students,
+                'schoolClass' => $schoolClass,
+                'section' => $section,
+                'school_classes' => $school_classes,
             ];
 
             return view('promotions.promote', $data);
@@ -128,21 +130,20 @@ class PromotionController extends Controller
 
         $rows = [];
         $i = 0;
-        foreach($id_card_numbers as $student_id => $id_card_number) {
+        foreach ($id_card_numbers as $student_id => $id_card_number) {
             $row = [
-                'student_id'    => $student_id,
-                'id_card_number'=> $id_card_number,
-                'class_id'      => $request->class_id[$i],
-                'section_id'    => $request->section_id[$i],
-                'session_id'    => $latest_school_session->id,
+                'student_id' => $student_id,
+                'id_card_number' => $id_card_number,
+                'class_id' => $request->class_id[$i],
+                'section_id' => $request->section_id[$i],
+                'session_id' => $latest_school_session->id,
             ];
             array_push($rows, $row);
             $i++;
         }
 
         try {
-            $promotionRepository = new PromotionRepository();
-            $promotionRepository->massPromotion($rows);
+            $this->promotionRepository->massPromotion($rows);
 
             return back()->with('status', 'Promoting students was successful!');
         } catch (\Exception $e) {
