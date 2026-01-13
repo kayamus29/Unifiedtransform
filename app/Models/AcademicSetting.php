@@ -13,7 +13,8 @@ class AcademicSetting extends Model
         'marks_submission_status',
         'default_exam_weight',
         'default_ca1_weight',
-        'marks_breakdown'
+        'marks_breakdown',
+        'enable_financial_withholding'
     ];
 
     protected $casts = [

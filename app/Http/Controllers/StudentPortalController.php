@@ -18,11 +18,13 @@ class StudentPortalController extends Controller
 {
     use SchoolSession;
     protected $schoolSessionRepository;
+    protected $walletService;
 
-    public function __construct(SchoolSessionInterface $schoolSessionRepository)
+    public function __construct(SchoolSessionInterface $schoolSessionRepository, \App\Interfaces\WalletServiceInterface $walletService)
     {
         $this->middleware(['auth', 'role:Student']);
         $this->schoolSessionRepository = $schoolSessionRepository;
+        $this->walletService = $walletService;
     }
 
     /**
@@ -63,7 +65,13 @@ class StudentPortalController extends Controller
             ->take(3)
             ->get();
 
-        $outstandingBalance = $student->getTotalOutstandingBalance();
+        // Corrected Source of Truth: Wallet Balance
+        // If negative = Debt (Outstanding)
+        // If positive = Credit
+        $walletBalance = $this->walletService->getBalance($student->id);
+
+        // Pass strictly the wallet balance. The View should handle the "Credit vs Debt" display logic.
+        // We will pass 'walletBalance' instead of 'outstandingBalance' to be precise.
 
         return view('student.dashboard', compact(
             'student',
@@ -72,7 +80,7 @@ class StudentPortalController extends Controller
             'totalPresent',
             'totalAbsent',
             'notices',
-            'outstandingBalance'
+            'walletBalance'
         ));
     }
 
@@ -151,6 +159,8 @@ class StudentPortalController extends Controller
             ->latest()
             ->get();
 
-        return view('student.fees', compact('student', 'fees', 'payments'));
+        $walletBalance = $this->walletService->getBalance($student->id);
+
+        return view('student.fees', compact('student', 'fees', 'payments', 'walletBalance'));
     }
 }

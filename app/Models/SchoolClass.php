@@ -12,7 +12,7 @@ class SchoolClass extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['class_name', 'session_id'];
+    protected $fillable = ['class_name', 'session_id', 'is_final_grade'];
 
     /**
      * Get the sections for the class.
@@ -60,5 +60,16 @@ class SchoolClass extends Model
     public function assignedTeachers()
     {
         return $this->hasMany(AssignedTeacher::class, 'class_id');
+    }
+    /**
+     * Get fee items for a specific session and term.
+     */
+    public function getFeeItems($sessionId, $semesterId)
+    {
+        return $this->classFees()
+            ->where('session_id', $sessionId)
+            ->where('semester_id', $semesterId)
+            ->with('feeHead')
+            ->get();
     }
 }

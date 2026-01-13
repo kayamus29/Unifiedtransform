@@ -16,8 +16,10 @@
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Paid</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">₦{{ number_format($student->getTotalFees() - $student->getTotalOutstandingBalance(), 2) }}</div>
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Paid
+                                            (Lifetime)</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            ₦{{ number_format($payments->sum('amount_paid'), 2) }}</div>
                                     </div>
                                     <div class="col-auto">
                                         <i class="bi bi-check-circle fa-2x text-gray-300"></i>
@@ -28,15 +30,18 @@
                     </div>
 
                     <div class="col-xl-6 col-md-6 mb-4">
-                        <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card border-left-{{ $walletBalance >= 0 ? 'success' : 'danger' }} shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Current Outstanding Balance</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">₦{{ number_format($student->getTotalOutstandingBalance(), 2) }}</div>
+                                        <div
+                                            class="text-xs font-weight-bold text-{{ $walletBalance >= 0 ? 'success' : 'danger' }} text-uppercase mb-1">
+                                            Wallet Balance ({{ $walletBalance >= 0 ? 'Credit' : 'Debt' }})</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            ₦{{ number_format(abs($walletBalance), 2) }}</div>
                                     </div>
                                     <div class="col-auto">
-                                        <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                                        <i class="bi bi-wallet2 fa-2x text-gray-300"></i>
                                     </div>
                                 </div>
                             </div>

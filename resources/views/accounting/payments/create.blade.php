@@ -17,6 +17,21 @@
                         <h6 class="m-0 font-weight-bold text-primary">New Payment Record</h6>
                     </div>
                     <div class="card-body">
+                        @if(session('success'))
+                            <div class="alert alert-success">{{ session('success') }}</div>
+                        @endif
+                        @if(session('error'))
+                            <div class="alert alert-danger">{{ session('error') }}</div>
+                        @endif
+                        @if($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <form action="{{ route('accounting.payments.store') }}" method="POST">
                             @csrf
                             <div class="row">
@@ -32,16 +47,6 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                </div>
-
-                                <!-- Fee Selection -->
-                                <div class="col-md-6 mb-3">
-                                    <label for="student_fee_id" class="form-label">Select Fee to Pay <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select" name="student_fee_id" id="fee_select" required disabled>
-                                        <option value="">-- Select Student First --</option>
-                                    </select>
-                                    <div id="fee_info" class="form-text mt-1"></div>
                                 </div>
 
                                 <!-- Class Selection -->
@@ -104,6 +109,11 @@
                                     <input type="text" class="form-control" name="reference_no"
                                         placeholder="Leave blank to auto-generate">
                                 </div>
+                                <!-- Remarks -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="remarks" class="form-label">Remarks / Description</label>
+                                    <input type="text" class="form-control" name="remarks" placeholder="Optional remarks">
+                                </div>
                             </div>
 
                             <div class="text-end mt-3">
@@ -117,4 +127,49 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            $(document).ready(function () {
+                $('#student_select').on('change', function () {
+                    var studentId = $(this).val();
+                    var feeSelect = $('#fee_select');
+                    var feeInfo = $('#fee_info');
+
+                    // Reset fields
+                    feeSelect.empty().append('<option value="">-- Loading Fees... --</option>');
+                    feeInfo.text('');
+
+                    if (studentId) {
+                        // 1. Fetch Student Details (Auto-fill)
+                        $.ajax({
+                            url: "{{ url('school/accounting/payments/student') }}/" + studentId + "/details",
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(details) {
+                                if (details.class_id) {
+                                    $('select[name="class_id"]').val(details.class_id).trigger('change');
+                                }
+                                if (details.session_id) {
+                                    $('select[name="school_session_id"]').val(details.session_id).trigger('change');
+                                }
+                            }
+                        });
+                    } else {
+                        feeSelect.empty().append('<option value="">-- Select Student First --</option>');
+                        feeSelect.prop('disabled', true);
+                    }
+                });
+
+                // Auto-fill amount when fee is selected
+                $('#fee_select').on('change', function () {
+                    var selectedOption = $(this).find('option:selected');
+                    var amount = selectedOption.data('amount');
+                    if (amount) {
+                        $('input[name="amount_paid"]').val(amount);
+                    }
+                });
+            });
+        </script>
+    @endpush
 @endsection

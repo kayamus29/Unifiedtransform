@@ -42,4 +42,17 @@ class AcademicSettingRepository implements AcademicSettingInterface
             throw new \Exception('Failed to update default weights. ' . $e->getMessage());
         }
     }
+
+    public function updateFinancialWithholding($request)
+    {
+        $status = false;
+        if (isset($request['enable_financial_withholding'])) {
+            $status = true;
+        }
+        try {
+            AcademicSetting::where('id', 1)->update(['enable_financial_withholding' => $status]);
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to update financial withholding status. ' . $e->getMessage());
+        }
+    }
 }

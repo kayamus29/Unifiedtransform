@@ -149,4 +149,28 @@ class AcademicSettingController extends Controller
             return back()->withError($e->getMessage());
         }
     }
+
+    public function updateFinancialWithholding(Request $request)
+    {
+        try {
+            $this->academicSettingRepository->updateFinancialWithholding($request);
+
+            return back()->with('status', 'Financial withholding status update was successful!');
+        } catch (\Exception $e) {
+            return back()->withError($e->getMessage());
+        }
+    }
+
+    public function updateFinalGrades(Request $request)
+    {
+        try {
+            $sessionId = $this->getSchoolCurrentSession();
+            $finalGradeClassIds = $request->input('final_grade_classes', []);
+            $this->schoolClassRepository->updateFinalGradeDesignations($finalGradeClassIds, $sessionId);
+
+            return back()->with('status', 'Graduation-eligible classes updated successfully!');
+        } catch (\Exception $e) {
+            return back()->withError($e->getMessage());
+        }
+    }
 }

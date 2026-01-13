@@ -23,7 +23,7 @@ class StudentPayment extends Model
         'student_id',
         'student_fee_id',
         'class_id',
-        'session_id',
+        'school_session_id',
         'semester_id',
         'amount_paid',
         'payment_method',
@@ -44,7 +44,7 @@ class StudentPayment extends Model
 
     public function session()
     {
-        return $this->belongsTo(SchoolSession::class, 'session_id');
+        return $this->belongsTo(SchoolSession::class, 'school_session_id');
     }
 
     public function semester() // Term
@@ -60,5 +60,10 @@ class StudentPayment extends Model
     public function receiver()
     {
         return $this->belongsTo(User::class, 'received_by');
+    }
+
+    public function transaction()
+    {
+        return $this->morphOne(WalletTransaction::class, 'reference');
     }
 }

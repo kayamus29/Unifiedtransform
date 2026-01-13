@@ -17,4 +17,6 @@ interface SchoolClassInterface
     public function findById($class_id);
 
     public function update($request);
+
+    public function updateFinalGradeDesignations(array $finalGradeClassIds, int $sessionId);
 }

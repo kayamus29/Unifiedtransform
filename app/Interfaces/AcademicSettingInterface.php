@@ -11,4 +11,6 @@ interface AcademicSettingInterface
     public function updateFinalMarksSubmissionStatus($request);
 
     public function updateDefaultWeights($request);
+
+    public function updateFinancialWithholding($request);
 }

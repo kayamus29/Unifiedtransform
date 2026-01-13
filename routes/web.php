@@ -28,6 +28,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StaffAttendanceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
+use App\Http\Controllers\ResultsDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -116,6 +117,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/marks/final/submit', [MarkController::class, 'showFinalMark'])->name('course.final.mark.submit.show');
     Route::post('/marks/final/submit', [MarkController::class, 'storeFinalMark'])->name('course.final.mark.submit.store');
 
+    // Results Dashboard
+    Route::get('/results/teacher', [ResultsDashboardController::class, 'teacherView'])->name('results.teacher');
+    Route::get('/results/section', [ResultsDashboardController::class, 'sectionView'])->name('results.section');
+    Route::get('/results/student', [ResultsDashboardController::class, 'studentView'])->name('results.student');
+    Route::get('/results/admin', [ResultsDashboardController::class, 'adminView'])->name('results.admin');
+    Route::get('/ajax/results/breakdown', [ResultsDashboardController::class, 'getBreakdownAjax'])->name('ajax.results.breakdown');
+
     // Exams
     Route::get('/exams/view', [ExamController::class, 'index'])->name('exam.list.show');
     Route::post('/exams/create', [ExamController::class, 'store'])->name('exam.create');
@@ -138,6 +146,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/promote', [PromotionController::class, 'create'])->name('promotions.create');
     Route::post('/promotions/promote', [PromotionController::class, 'store'])->name('promotions.store');
 
+    // New Flexible Promotion Flow Routes
+    Route::prefix('promotions')->name('promotions.')->group(function () {
+        Route::get('/policy', [PromotionController::class, 'policySettings'])->name('policy');
+        Route::post('/policy', [PromotionController::class, 'storePolicy'])->name('policy.store');
+        Route::get('/review', [PromotionController::class, 'reviewBoard'])->name('review');
+        Route::post('/review/update', [PromotionController::class, 'updateReview'])->name('review.update');
+        Route::post('/review/finalize', [PromotionController::class, 'finalizeBatch'])->name('review.finalize');
+        Route::get('/projection', [PromotionController::class, 'studentProjection'])->name('student.projection');
+    });
+
     // Accounting Dashboard
     Route::get('/accounting/dashboard', [App\Http\Controllers\AccountingDashboardController::class, 'index'])->name('accounting.dashboard');
     Route::get('/accounting/analytics', [App\Http\Controllers\FinancialAnalyticsController::class, 'index'])->name('accounting.analytics.index');
@@ -150,7 +168,17 @@ Route::middleware(['auth'])->group(function () {
     // Class Fees
     Route::get('/accounting/fees/assign', [App\Http\Controllers\ClassFeeController::class, 'index'])->name('accounting.fees.class.index');
     Route::post('/accounting/fees/assign', [App\Http\Controllers\ClassFeeController::class, 'store'])->name('accounting.fees.class.store');
+    Route::post('/accounting/fees/bulk-bill', [App\Http\Controllers\ClassFeeController::class, 'generateBills'])->name('accounting.fees.class.bulk_bill');
     Route::delete('/accounting/fees/assign/{id}', [App\Http\Controllers\ClassFeeController::class, 'destroy'])->name('accounting.fees.class.destroy');
+
+    // AJAX Fee Management Endpoints
+    Route::prefix('ajax/accounting/fees')->group(function () {
+        Route::get('/list', [App\Http\Controllers\ClassFeeController::class, 'getFeesAjax'])->name('accounting.fees.ajax.list');
+        Route::post('/store', [App\Http\Controllers\ClassFeeController::class, 'storeAjax'])->name('accounting.fees.ajax.store');
+        Route::delete('/destroy/{id}', [App\Http\Controllers\ClassFeeController::class, 'destroyAjax'])->name('accounting.fees.ajax.destroy');
+        Route::get('/bulk-preview', [App\Http\Controllers\ClassFeeController::class, 'getBulkPreviewAjax'])->name('accounting.fees.ajax.bulk_preview');
+        Route::post('/copy-term', [App\Http\Controllers\ClassFeeController::class, 'copyTermFeesAjax'])->name('accounting.fees.ajax.copy_term');
+    });
 
     // Student Fees
     Route::get('/accounting/fees/student', [App\Http\Controllers\StudentFeeController::class, 'index'])->name('accounting.fees.student.index');
@@ -163,6 +191,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/accounting/payments/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('accounting.payments.create');
     Route::post('/accounting/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('accounting.payments.store');
     Route::get('/accounting/payments/{id}', [App\Http\Controllers\PaymentController::class, 'show'])->name('accounting.payments.show');
+    Route::get('/accounting/payments/student/{id}/details', [App\Http\Controllers\PaymentController::class, 'getStudentDetails'])->name('accounting.payments.student.details');
 
     // Expenses
     Route::get('/accounting/expenses', [App\Http\Controllers\ExpenseController::class, 'index'])->name('accounting.expenses.index');
@@ -189,6 +218,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Academic settings
     Route::get('/academics/settings', [AcademicSettingController::class, 'index']);
+    Route::post('/academics/settings/attendance-type/update', [AcademicSettingController::class, 'updateAttendanceType'])->name('school.attendance.type.update');
+    Route::post('/academics/settings/final-marks-submission-status/update', [AcademicSettingController::class, 'updateFinalMarksSubmissionStatus'])->name('school.final.marks.submission.status.update');
+    Route::post('/academics/settings/default-weights/update', [AcademicSettingController::class, 'updateDefaultWeights'])->name('school.default.weights.update');
+    Route::post('/academics/settings/financial-withholding/update', [AcademicSettingController::class, 'updateFinancialWithholding'])->name('school.financial.withholding.update');
+    Route::post('/academics/settings/final-grades/update', [AcademicSettingController::class, 'updateFinalGrades'])->name('school.final.grades.update');
+    Route::get('/academics/graduation', [App\Http\Controllers\GraduationController::class, 'index'])->name('academics.graduation.index');
+    Route::post('/academics/graduation/{id}/finalize', [App\Http\Controllers\GraduationController::class, 'finalize'])->name('academics.graduation.finalize');
 
     // Site Settings (Whitelabeling)
     Route::get('/settings/site', [SiteSettingController::class, 'edit'])->name('settings.site.edit');
@@ -216,6 +252,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('courses/teacher/index', [AssignedTeacherController::class, 'getTeacherCourses'])->name('course.teacher.list.show');
     Route::get('courses/student/index/{student_id}', [CourseController::class, 'getStudentCourses'])->name('course.student.list.show');
     Route::get('course/edit/{id}', [CourseController::class, 'edit'])->name('course.edit');
+
+    // Student Lifecycle
+    Route::post('/students/{id}/deactivate', [App\Http\Controllers\StudentStatusController::class, 'deactivate'])->name('student.deactivate');
+    Route::post('/students/{id}/reactivate', [App\Http\Controllers\StudentStatusController::class, 'reactivate'])->name('student.reactivate');
 
     // Assignment
     Route::get('courses/assignments/index', [AssignmentController::class, 'getCourseAssignments'])->name('assignment.list.show');

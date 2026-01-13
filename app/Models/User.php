@@ -52,7 +52,17 @@ class User extends Authenticatable
         'religion',
         'blood_type',
         'role',
+        'status',
+        'deactivated_at',
+        'deactivated_by',
+        'deactivation_reason',
+        'graduated_at',
     ];
+
+    public function deactivator()
+    {
+        return $this->belongsTo(User::class, 'deactivated_by');
+    }
 
     /**
      * The attributes that should be hidden for arrays.
@@ -113,5 +123,10 @@ class User extends Authenticatable
     public function getTotalFees()
     {
         return StudentFee::where('student_id', $this->id)->whereNull('transferred_to_id')->sum('amount');
+    }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class, 'student_id');
     }
 }

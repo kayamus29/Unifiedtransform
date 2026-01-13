@@ -226,6 +226,12 @@ class AttendanceController extends Controller
     public function showStudentAttendance($id)
     {
         $user = Auth::user();
+        $student = \App\Models\User::find($id);
+
+        if (!\App\Classes\AcademicGate::canViewAttendance($student)) {
+            return redirect()->back()->with('error', 'Academic records are temporarily withheld due to outstanding balance.');
+        }
+
         if ($user->hasRole('Student') && $user->id != $id) {
             return abort(403);
         }

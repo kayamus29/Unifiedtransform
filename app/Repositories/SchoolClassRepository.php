@@ -84,4 +84,19 @@ class SchoolClassRepository implements SchoolClassInterface
             throw new \Exception('Failed to update School Class. ' . $e->getMessage());
         }
     }
+
+    public function updateFinalGradeDesignations(array $finalGradeClassIds, int $sessionId)
+    {
+        try {
+            // Reset all for current session
+            SchoolClass::where('session_id', $sessionId)->update(['is_final_grade' => false]);
+
+            // Set selected
+            if (!empty($finalGradeClassIds)) {
+                SchoolClass::whereIn('id', $finalGradeClassIds)->update(['is_final_grade' => true]);
+            }
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to update final grade designations. ' . $e->getMessage());
+        }
+    }
 }

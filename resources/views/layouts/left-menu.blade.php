@@ -124,10 +124,10 @@
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Attendance</span></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('student.marks') ? 'active' : '' }}"
-                                href="{{route('student.marks')}}"><i
-                                    class="bi bi-journal-check"></i> <span
-                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Marks</span></a>
+                            <a class="nav-link {{ request()->routeIs('results.student') ? 'active' : '' }}"
+                                href="{{route('results.student')}}"><i
+                                    class="bi bi-graph-up-arrow"></i> <span
+                                    class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Results Dashboard</span></a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('student.timetable') ? 'active' : '' }}"
@@ -176,18 +176,36 @@
                                 Systems</a></li>
                     </ul>
                 </li>
-                {{-- <li class="nav-item border-bottom">
-                    <a type="button" href="#"
-                        class="d-flex nav-link {{ request()->is('marks*')? 'active' : '' }} dropdown-toggle caret-off"
-                        data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-cloud-sun"></i> <span
-                            class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Marks / Results</span>
+                <li class="nav-item border-bottom">
+                    <a type="button" href="#results-dashboard-submenu" data-bs-toggle="collapse"
+                        class="d-flex nav-link {{ request()->is('results*') ? 'active' : '' }}"><i
+                            class="bi bi-graph-up-arrow"></i>
+                        <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Results Analysis</span>
                         <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{{url('marks/view')}}">View Marks</a></li>
-                        <li><a class="dropdown-item" href="{{url('marks/results')}}">View Results</a></li>
+                    <ul class="nav collapse {{ request()->is('results*') ? 'show' : 'hide' }} bg-white"
+                        id="results-dashboard-submenu">
+                        @if(Auth::user()->hasRole('Teacher'))
+                            <li class="nav-item w-100" {{ request()->routeIs('results.teacher') ? 'style="font-weight:bold;"' : '' }}>
+                                <a class="nav-link" href="{{route('results.teacher')}}">
+                                    <i class="bi bi-layout-text-window-reverse me-2"></i> Subject Course Results
+                                </a>
+                            </li>
+                            <li class="nav-item w-100" {{ request()->routeIs('results.section') ? 'style="font-weight:bold;"' : '' }}>
+                                <a class="nav-link" href="{{route('results.section')}}">
+                                    <i class="bi bi-person-badge-fill me-2"></i> Section Performance
+                                </a>
+                            </li>
+                        @endif
+                        @if(Auth::user()->hasRole('Admin'))
+                            <li class="nav-item w-100" {{ request()->routeIs('results.admin') ? 'style="font-weight:bold;"' : '' }}>
+                                <a class="nav-link" href="{{route('results.admin')}}">
+                                    <i class="bi bi-search me-2"></i> Admin Search Audit
+                                </a>
+                            </li>
+                        @endif
                     </ul>
-                </li> --}}
+                </li>
             @endif
             @if (Auth::user()->hasRole('Admin'))
                 <li class="nav-item">
@@ -218,13 +236,48 @@
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Academic</span></a>
                 </li>
             @endif
-            @if (Auth::user()->hasRole('Admin'))
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('promotions*') ? 'active' : '' }}"
-                        href="{{route('promotions.index')}}"><i class="bi bi-sort-numeric-up-alt"></i> <span
-                            class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Promotion</span></a>
+                <li class="nav-item border-bottom">
+                    <a type="button" href="#promotions-submenu" data-bs-toggle="collapse"
+                        class="d-flex nav-link {{ request()->is('promotions*') ? 'active' : '' }}"><i
+                            class="bi bi-sort-numeric-up-alt"></i>
+                        <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Promotions</span>
+                        <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
+                    </a>
+                    <ul class="nav collapse {{ request()->is('promotions*') ? 'show' : 'hide' }} bg-white"
+                        id="promotions-submenu">
+                        @if(Auth::user()->hasRole('Admin'))
+                            <li class="nav-item w-100" {{ request()->routeIs('promotions.policy') ? 'style="font-weight:bold;"' : '' }}>
+                                <a class="nav-link" href="{{route('promotions.policy')}}">
+                                    <i class="bi bi-gear-fill me-2"></i> Policies
+                                </a>
+                            </li>
+                            <li class="nav-item w-100" {{ request()->routeIs('promotions.index') ? 'style="font-weight:bold;"' : '' }}>
+                                <a class="nav-link" href="{{route('promotions.index')}}">
+                                    <i class="bi bi-arrow-repeat me-2"></i> Manual Legacy
+                                </a>
+                            </li>
+                        @endif
+                        <li class="nav-item w-100" {{ request()->routeIs('promotions.review') ? 'style="font-weight:bold;"' : '' }}>
+                            <a class="nav-link" href="{{route('promotions.review')}}">
+                                <i class="bi bi-shield-check me-2"></i> Review Board
+                            </a>
+                        </li>
+                        @if(Auth::user()->hasRole('Admin'))
+                            <li class="nav-item w-100" {{ request()->routeIs('academics.graduation.index') ? 'style="font-weight:bold;"' : '' }}>
+                                <a class="nav-link" href="{{route('academics.graduation.index')}}">
+                                    <i class="bi bi-mortarboard-fill me-2"></i> Graduation Dash
+                                </a>
+                            </li>
+                        @endif
+                        @if(Auth::user()->hasRole('Student'))
+                            <li class="nav-item w-100" {{ request()->routeIs('promotions.student.projection') ? 'style="font-weight:bold;"' : '' }}>
+                                <a class="nav-link" href="{{route('promotions.student.projection')}}">
+                                    <i class="bi bi-graph-up me-2"></i> My Projection
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
                 </li>
-            @endif
             @if (Auth::user()->hasAnyRole(['Admin', 'Accountant']))
                 <li class="nav-item">
                     <a type="button" href="#accounting-submenu" data-bs-toggle="collapse"

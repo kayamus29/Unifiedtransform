@@ -7,7 +7,8 @@
             <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
                 <div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
                     <h1 class="h3 mb-0 text-gray-800">Financial Profile: {{ $student->first_name }}
-                        {{ $student->last_name }}</h1>
+                        {{ $student->last_name }}
+                    </h1>
                     <div>
                         <a href="{{ route('student.profile.show', $student->id) }}" class="btn btn-secondary">
                             <i class="bi bi-person"></i> Basic Profile
@@ -45,9 +46,10 @@
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
                                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Paid
+                                            (Lifetime)
                                         </div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            ₦{{ number_format($student->getTotalFees() - $student->getTotalOutstandingBalance(), 2) }}
+                                            ₦{{ number_format($payments->sum('amount_paid'), 2) }}
                                         </div>
                                     </div>
                                     <div class="col-auto">
@@ -59,17 +61,18 @@
                     </div>
 
                     <div class="col-xl-4 col-md-6 mb-4">
-                        <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card border-left-{{ $walletBalance >= 0 ? 'success' : 'danger' }} shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Outstanding
-                                            Balance</div>
+                                        <div
+                                            class="text-xs font-weight-bold text-{{ $walletBalance >= 0 ? 'success' : 'danger' }} text-uppercase mb-1">
+                                            Wallet Balance ({{ $walletBalance >= 0 ? 'Credit' : 'Debt' }})</div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            ₦{{ number_format($student->getTotalOutstandingBalance(), 2) }}</div>
+                                            ₦{{ number_format(abs($walletBalance), 2) }}</div>
                                     </div>
                                     <div class="col-auto">
-                                        <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                                        <i class="bi bi-wallet2 fa-2x text-gray-300"></i>
                                     </div>
                                 </div>
                             </div>

@@ -58,4 +58,9 @@ class StudentFee extends Model
     {
         return $this->hasOne(StudentFee::class, 'transferred_to_id');
     }
+
+    public function transaction()
+    {
+        return $this->morphOne(WalletTransaction::class, 'reference');
+    }
 }

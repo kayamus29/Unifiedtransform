@@ -54,17 +54,34 @@
                             </div>
                         </div>
 
-                        <!-- Outstanding -->
+                        <!-- Receivables (Debt) -->
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-left-warning shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Outstanding Debts</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">₦{{ number_format($totalOutstanding, 2) }}</div>
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Receivables (Debt)</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">₦{{ number_format(abs($totalReceivables), 2) }}</div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="bi bi-exclamation-circle fa-2x text-gray-300" style="font-size: 2rem;"></i>
+                                            <i class="bi bi-arrow-down-circle fa-2x text-gray-300" style="font-size: 2rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liabilities (Prepaid Credit) -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Prepaid Credits (Liabilities)</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">₦{{ number_format($totalLiabilities, 2) }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-wallet2 fa-2x text-gray-300" style="font-size: 2rem;"></i>
                                         </div>
                                     </div>
                                 </div>

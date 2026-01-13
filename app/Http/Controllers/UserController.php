@@ -16,6 +16,8 @@ use App\Repositories\StudentParentInfoRepository;
 use App\Models\AssignedTeacher;
 use Illuminate\Support\Facades\Auth;
 
+use App\Interfaces\WalletServiceInterface;
+
 class UserController extends Controller
 {
     use SchoolSession;
@@ -25,6 +27,7 @@ class UserController extends Controller
     protected $schoolSectionRepository;
     protected $promotionRepository;
     protected $studentParentInfoRepository;
+    protected $walletService;
 
     public function __construct(
         UserInterface $userRepository,
@@ -32,7 +35,8 @@ class UserController extends Controller
         SchoolClassInterface $schoolClassRepository,
         SectionInterface $schoolSectionRepository,
         PromotionRepository $promotionRepository,
-        StudentParentInfoRepository $studentParentInfoRepository
+        StudentParentInfoRepository $studentParentInfoRepository,
+        WalletServiceInterface $walletService
     ) {
         $this->middleware(['can:view-student-list']);
 
@@ -42,6 +46,7 @@ class UserController extends Controller
         $this->schoolSectionRepository = $schoolSectionRepository;
         $this->promotionRepository = $promotionRepository;
         $this->studentParentInfoRepository = $studentParentInfoRepository;
+        $this->walletService = $walletService;
     }
 
     /**
@@ -208,10 +213,12 @@ class UserController extends Controller
 
         $current_school_session_id = $this->getSchoolCurrentSession();
         $promotion_info = $this->promotionRepository->getPromotionInfoById($current_school_session_id, $id);
+        $walletBalance = $this->walletService->getBalance($id);
 
         $data = [
             'student' => $student,
             'promotion_info' => $promotion_info,
+            'walletBalance' => $walletBalance
         ];
 
         return view('students.profile', $data);

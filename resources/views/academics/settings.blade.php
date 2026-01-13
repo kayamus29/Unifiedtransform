@@ -318,6 +318,30 @@
                                     </div>
                                     <div class="col-md-4 mb-4">
                                         <div class="p-3 border bg-light shadow-sm">
+                                            <h6>Financial Withholding</h6>
+                                            <form action="{{route('school.financial.withholding.update')}}"
+                                                method="POST">
+                                                @csrf
+                                                <p class="text-danger">
+                                                    <small><i class="bi bi-exclamation-diamond-fill me-2"></i> When enabled, students with negative balances cannot view results or attendance.</small>
+                                                </p>
+                                                <p class="text-primary">
+                                                    <small><i class="bi bi-info-circle-fill me-2"></i> Transparently bypasses for staff (Teachers, Admins, Accountants).</small>
+                                                </p>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="enable_financial_withholding" id="enable_financial_withholding_check"
+                                                        {{($academic_setting->enable_financial_withholding) ? 'checked="checked"' : null}}>
+                                                    <label class="form-check-label"
+                                                        for="enable_financial_withholding_check">{{($academic_setting->enable_financial_withholding) ? 'Enabled' : 'Disabled'}}</label>
+                                                </div>
+                                                <button type="submit" class="mt-3 btn btn-sm btn-outline-primary"><i
+                                                        class="bi bi-check2"></i> Save</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-4">
+                                        <div class="p-3 border bg-light shadow-sm">
                                             <h6>Default Exam Weights</h6>
                                             <p class="text-primary">
                                                 <small><i class="bi bi-info-circle-fill me-2"></i> Define the default percentage
@@ -366,6 +390,28 @@
                                                     <button type="button" id="add-weight-row" class="btn btn-sm btn-outline-secondary"><i class="bi bi-plus-lg"></i> Add Component</button>
                                                     <button type="submit" class="btn btn-sm btn-primary mt-2"><i class="bi bi-check2"></i> Save Weights</button>
                                                 </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-4">
+                                        <div class="p-3 border bg-light shadow-sm">
+                                            <h6>Graduation Settings</h6>
+                                            <p class="text-primary smaller">
+                                                <small><i class="bi bi-info-circle-fill me-1"></i> Marks classes as "Final Year". Students in these classes will be evaluated for graduation in the Graduation Dashboard.</small>
+                                            </p>
+                                            <form action="{{route('school.final.grades.update')}}" method="POST">
+                                                @csrf
+                                                <div class="mb-3" style="max-height: 200px; overflow-y: auto;">
+                                                    @foreach($school_classes as $class)
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="final_grade_classes[]" value="{{$class->id}}" id="class_final_{{$class->id}}" {{$class->is_final_grade ? 'checked' : ''}}>
+                                                        <label class="form-check-label small" for="class_final_{{$class->id}}">
+                                                            {{$class->class_name}}
+                                                        </label>
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                                <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check2"></i> Update Designations</button>
                                             </form>
                                         </div>
                                     </div>

@@ -9,9 +9,12 @@ use App\Models\StudentPayment;
 
 class StudentFinancialProfileController extends Controller
 {
-    public function __construct()
+    protected $walletService;
+
+    public function __construct(\App\Interfaces\WalletServiceInterface $walletService)
     {
         $this->middleware(['auth', 'role:Accountant|Admin']);
+        $this->walletService = $walletService;
     }
 
     public function show($id)
@@ -28,6 +31,8 @@ class StudentFinancialProfileController extends Controller
             ->latest()
             ->get();
 
-        return view('accounting.students.financial_profile', compact('student', 'fees', 'payments'));
+        $walletBalance = $this->walletService->getBalance($id);
+
+        return view('accounting.students.financial_profile', compact('student', 'fees', 'payments', 'walletBalance'));
     }
 }

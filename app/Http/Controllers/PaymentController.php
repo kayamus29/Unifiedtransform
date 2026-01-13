@@ -9,23 +9,24 @@ use App\Models\SchoolClass;
 use App\Models\SchoolSession;
 use App\Models\Semester;
 use Exception;
-use App\Services\FinancialService;
+use App\Interfaces\WalletServiceInterface;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    protected $financialService;
+    protected $walletService;
 
-    public function __construct(FinancialService $financialService)
+    public function __construct(WalletServiceInterface $walletService)
     {
         $this->middleware(['auth', 'role:Accountant|Admin']);
-        $this->financialService = $financialService;
+        $this->walletService = $walletService;
     }
 
     public function index(Request $request)
     {
         $search = $request->input('search');
 
-        $query = StudentPayment::with(['student', 'schoolClass', 'session', 'semester']);
+        $query = StudentPayment::with(['student', 'schoolClass', 'session', 'semester', 'transaction']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -42,17 +43,6 @@ class PaymentController extends Controller
         $payments = $query->latest('transaction_date')
             ->paginate(20)
             ->appends(['search' => $search]);
-
-        // Calculate balances for the current view using centralized logic
-        foreach ($payments as $payment) {
-            if ($payment->student) {
-                $payment->outstanding_balance = $payment->student->getTotalOutstandingBalance();
-                $payment->total_fees = $payment->student->getTotalFees();
-            } else {
-                $payment->outstanding_balance = 0;
-                $payment->total_fees = 0;
-            }
-        }
 
         return view('accounting.payments.index', compact('payments'));
     }
@@ -78,42 +68,57 @@ class PaymentController extends Controller
         $request->validate([
             'student_id' => 'required|exists:users,id',
             'class_id' => 'required|exists:school_classes,id',
-            'amount_paid' => 'required|numeric|min:0',
+            'amount_paid' => 'required|numeric|min:0.01',
             'transaction_date' => 'required|date',
+            'payment_method' => 'required|string',
+            'school_session_id' => 'required|exists:school_sessions,id',
+            'semester_id' => 'required|exists:semesters,id',
+            'remarks' => 'nullable|string|max:255',
         ]);
 
         try {
-            // Auto-detect session/semester if not provided? 
-            // For now, let's make them required or fallback to latest.
-            $session_id = $request->school_session_id ?? SchoolSession::latest()->first()->id;
-            $semester_id = $request->semester_id ?? Semester::where('session_id', $session_id)->first()->id; // Fallback risky
+            DB::beginTransaction();
 
-            // Better to force user selection to be accurate
-            $request->validate([
-                'school_session_id' => 'required|exists:school_sessions,id',
-                'semester_id' => 'required|exists:semesters,id',
-            ]);
+            $ref = $request->reference_no ?? 'PAY-' . strtoupper(uniqid());
 
-            $ref = 'PAY-' . strtoupper(uniqid());
-
+            // Create Payment Record
             $payment = StudentPayment::create([
                 'student_id' => $request->student_id,
-                'student_fee_id' => $request->student_fee_id, // Link to specific fee
+                'student_fee_id' => null, // Always null for strict wallet system
                 'class_id' => $request->class_id,
-                'session_id' => $request->school_session_id,
+                'school_session_id' => $request->school_session_id,
                 'semester_id' => $request->semester_id,
                 'amount_paid' => $request->amount_paid,
                 'payment_method' => $request->payment_method,
                 'transaction_date' => $request->transaction_date,
-                'reference_no' => $request->reference_no ?? $ref,
+                'reference_no' => $ref,
                 'received_by' => auth()->id(),
+                'description' => $request->remarks,
             ]);
 
-            // Process the payment through the financial service
-            $this->financialService->recordPayment($payment);
+            // Wallet Deposit
+            $description = "Payment " . $ref;
+            if ($request->remarks) {
+                $description .= " - " . $request->remarks;
+            } else {
+                $description .= " (Wallet Deposit)";
+            }
+
+            $this->walletService->deposit(
+                $request->student_id,
+                $request->amount_paid,
+                'App\Models\StudentPayment',
+                $payment->id,
+                $description
+            );
+
+            // No legacy fee update - strict wallet system.
+
+            DB::commit();
 
             return redirect()->route('accounting.payments.index')->with('success', 'Payment recorded successfully. Ref: ' . $payment->reference_no);
         } catch (Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('error', 'Error recording payment: ' . $e->getMessage())->withInput();
         }
     }
@@ -122,5 +127,34 @@ class PaymentController extends Controller
     {
         $payment = StudentPayment::with(['student', 'schoolClass', 'session', 'semester'])->findOrFail($id);
         return view('accounting.payments.show', compact('payment'));
+    }
+
+    public function getStudentDetails($id)
+    {
+        // Get current session
+        $session = SchoolSession::latest()->first(); // Or use the trait methods if available
+        if (!$session) {
+            return response()->json(['error' => 'No active session found'], 404);
+        }
+
+        $student = User::with([
+            'promotions' => function ($q) use ($session) {
+                $q->where('session_id', $session->id)->with('schoolClass', 'section');
+            }
+        ])->find($id);
+
+        if (!$student) {
+            return response()->json(['error' => 'Student not found'], 404);
+        }
+
+        $promotion = $student->promotions->first();
+
+        return response()->json([
+            'class_id' => $promotion ? $promotion->class_id : null,
+            'class_name' => $promotion ? $promotion->schoolClass->class_name : null,
+            'session_id' => $session->id,
+            'session_name' => $session->session_name, // Assuming column name
+            // 'section_id' => $promotion ? $promotion->section_id : null, 
+        ]);
     }
 }

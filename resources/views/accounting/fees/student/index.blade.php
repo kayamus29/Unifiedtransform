@@ -49,10 +49,21 @@
                                             </td>
                                             <td class="fw-bold">₦{{ number_format($fee->amount, 2) }}</td>
                                             <td class="text-success">₦{{ number_format($fee->amount_paid, 2) }}</td>
-                                            <td class="text-danger">₦{{ number_format($fee->balance, 2) }}</td>
+                                            @php
+                                                $snapshot = $fee->transaction->running_balance ?? null;
+                                                $isCredit = $snapshot >= 0;
+                                                $wColor = $isCredit ? 'text-success' : 'text-danger';
+                                            @endphp
+                                            <td class="{{ $wColor }} fw-bold">
+                                                @if($snapshot !== null)
+                                                    ₦{{ number_format(abs($snapshot), 2) }} {{ $isCredit ? '(Cr)' : '(Dr)' }}
+                                                @else
+                                                    <small class="text-muted">N/A</small>
+                                                @endif
+                                            </td>
                                             <td>
                                                 @if($fee->status == 'paid')
-                                                    <span class="badge bg-success">Paid</span>
+                                                    <span class="badge bg-success">Charged</span>
                                                 @elseif($fee->status == 'partial')
                                                     <span class="badge bg-warning text-dark">Partial</span>
                                                 @else
@@ -78,6 +89,9 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="d-flex justify-content-center mt-3">
+                            {{ $studentFees->links() }}
                         </div>
                     </div>
                 </div>

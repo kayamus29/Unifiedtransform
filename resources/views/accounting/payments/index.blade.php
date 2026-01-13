@@ -48,7 +48,7 @@
                                         <th>Class</th>
                                         <th>Session/Term</th>
                                         <th>Amount Paid</th>
-                                        <th>Outstanding</th>
+                                        <th>Wallet Balance</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -67,20 +67,33 @@
                                                 <small class="text-muted">{{ $payment->semester->semester_name ?? '' }}</small>
                                             </td>
                                             <td>
-                                                <small class="text-muted">Total:
-                                                    ₦{{ number_format($payment->total_fees, 2) }}</small><br>
                                                 <span
                                                     class="font-weight-bold text-success">₦{{ number_format($payment->amount_paid, 2) }}</span>
                                             </td>
                                             <td>
-                                                <span
-                                                    class="text-danger font-weight-bold">₦{{ number_format($payment->outstanding_balance, 2) }}</span>
+                                                @php
+                                                    $snapshot = $payment->transaction->running_balance ?? null;
+                                                    $isCredit = $snapshot >= 0;
+                                                    $color = $isCredit ? 'success' : 'danger';
+                                                @endphp
+                                                @if($snapshot !== null)
+                                                    <span class="text-{{ $color }} font-weight-bold">
+                                                        ₦{{ number_format(abs($snapshot), 2) }}
+                                                        <small>({{ $isCredit ? 'Cr' : 'Dr' }})</small>
+                                                    </span>
+                                                @else
+                                                    <small class="text-muted">N/A</small>
+                                                @endif
                                             </td>
                                             <td>
-                                                @if($payment->outstanding_balance <= 0)
-                                                    <span class="badge bg-success">Fully Settled</span>
+                                                @if($snapshot !== null)
+                                                    @if($snapshot >= 0)
+                                                        <span class="badge bg-success">In Credit</span>
+                                                    @else
+                                                        <span class="badge bg-danger">Owing</span>
+                                                    @endif
                                                 @else
-                                                    <span class="badge bg-warning text-dark">Owing</span>
+                                                    <span class="badge bg-secondary">Unknown</span>
                                                 @endif
                                             </td>
                                             <td>

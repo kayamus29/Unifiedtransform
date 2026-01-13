@@ -35,13 +35,13 @@
                                 </div>
                             </div>
                                 <a href="{{ route('student.fees') }}" class="text-decoration-none">
-                                    <div class="card rounded-pill border-danger shadow-sm h-100">
+                                    <div class="card rounded-pill border-{{ $walletBalance >= 0 ? 'success' : 'danger' }} shadow-sm h-100">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center text-danger">
+                                            <div class="d-flex justify-content-between align-items-center text-{{ $walletBalance >= 0 ? 'success' : 'danger' }}">
                                                 <div class="ms-2 me-auto">
-                                                    <div class="fw-bold"><i class="bi bi-wallet2 me-2"></i> Balance</div>
+                                                    <div class="fw-bold"><i class="bi bi-wallet2 me-2"></i> {{ $walletBalance >= 0 ? 'My Credit' : 'My Debt' }}</div>
                                                 </div>
-                                                <span class="badge bg-danger rounded-pill">₦{{ number_format($outstandingBalance, 2) }}</span>
+                                                <span class="badge bg-{{ $walletBalance >= 0 ? 'success' : 'danger' }} rounded-pill">₦{{ number_format(abs($walletBalance), 2) }}</span>
                                             </div>
                                         </div>
                                     </div>
