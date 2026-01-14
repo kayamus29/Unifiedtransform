@@ -80,4 +80,43 @@ class AccountingDashboardController extends Controller
             'recentExpenses'
         ));
     }
+    public function debtors(Request $request)
+    {
+        $search = $request->input('search');
+
+        // Query students with negative wallet balance (meaning they owe money)
+        $query = User::role('student')
+            ->whereHas('wallet', function ($q) {
+                $q->where('balance', '<', 0);
+            })
+            ->with([
+                    'wallet',
+                    'promotions' => function ($q) {
+                        $q->latest()->take(1); // Get latest promotion for class info
+                    },
+                    'promotions.schoolClass'
+                ]);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhereHas('promotions', function ($pq) use ($search) {
+                        $pq->where('id_card_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Sort by biggest debt (lowest negative balance first)
+        // Join wallet to sort? Or simple get then sort. Pagination makes simple sort hard.
+        // Let's trying joining for sort.
+        $query->join('wallets', 'users.id', '=', 'wallets.student_id')
+            ->where('wallets.balance', '<', 0)
+            ->select('users.*') // Avoid column collision
+            ->orderBy('wallets.balance', 'asc'); // -5000 is smaller than -100, so ascending puts biggest debt first
+
+        $debtors = $query->paginate(20)->appends(['search' => $search]);
+
+        return view('accounting.debtors.index', compact('debtors'));
+    }
 }

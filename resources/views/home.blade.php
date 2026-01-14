@@ -4,107 +4,121 @@
     <div class="container">
         <div class="row justify-content-start">
             @include('layouts.left-menu')
-            <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
                 <div class="row pt-3">
                     <div class="col ps-4">
                         <!-- <h1 class="display-6 mb-3"><i class="ms-auto bi bi-grid"></i> {{ __('Dashboard') }}</h1> -->
                         <div class="row dashboard">
                             @if(Auth::user()->hasRole('Teacher'))
-                                <div class="col">
-                                    <div class="card rounded-pill border-primary shadow-sm">
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start text-primary">
-                                                <div class="ms-2 me-auto">
-                                                    <div class="fw-bold"><i class="bi bi-people-fill me-3"></i> My Students
-                                                    </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="text-muted text-uppercase small mb-1">My Students</p>
+                                                    <h3 class="mb-0 fw-bold">{{$teacherAssignedStudentsCount}}</h3>
                                                 </div>
-                                                <span
-                                                    class="badge bg-primary rounded-pill">{{$teacherAssignedStudentsCount}}</span>
+                                                <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                                    <i class="bi bi-people-fill text-primary fs-4"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col">
-                                    <div class="card rounded-pill border-info shadow-sm">
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start text-info">
-                                                <div class="ms-2 me-auto">
-                                                    <div class="fw-bold"><i class="bi bi-diagram-3 me-3"></i> My Classes</div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="text-muted text-uppercase small mb-1">My Classes</p>
+                                                    <h3 class="mb-0 fw-bold">{{$teacherAssignedClassesCount}}</h3>
                                                 </div>
-                                                <span class="badge bg-info rounded-pill">{{$teacherAssignedClassesCount}}</span>
+                                                <div class="bg-info bg-opacity-10 p-3 rounded">
+                                                    <i class="bi bi-diagram-3 text-info fs-4"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col">
-                                    <div
-                                        class="card rounded-pill @if($teacherTodayAttendanceDone) border-success @else border-warning @endif shadow-sm">
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm">
                                         <div class="card-body">
-                                            <div
-                                                class="d-flex justify-content-between align-items-start @if($teacherTodayAttendanceDone) text-success @else text-warning @endif">
-                                                <div class="ms-2 me-auto">
-                                                    <div class="fw-bold"><i class="bi bi-calendar-check me-3"></i> Attendance
-                                                    </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="text-muted text-uppercase small mb-1">Attendance</p>
+                                                    <h3
+                                                        class="mb-0 fw-bold @if($teacherTodayAttendanceDone) text-success @else text-warning @endif">
+                                                        {{$teacherTodayAttendanceDone ? 'Done' : 'Pending'}}
+                                                    </h3>
                                                 </div>
-                                                <span
-                                                    class="badge @if($teacherTodayAttendanceDone) bg-success @else bg-warning @endif rounded-pill">
-                                                    {{$teacherTodayAttendanceDone ? 'Done' : 'Pending'}}
-                                                </span>
+                                                <div
+                                                    class="@if($teacherTodayAttendanceDone) bg-success @else bg-warning @endif bg-opacity-10 p-3 rounded">
+                                                    <i
+                                                        class="bi bi-calendar-check @if($teacherTodayAttendanceDone) text-success @else text-warning @endif fs-4"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             @else
-                                <div class="col">
-                                    <div class="card rounded-pill">
+                                <div class="col-md-3">
+                                    <div class="card border-0 shadow-sm">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="ms-2 me-auto">
-                                                    <div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total
-                                                        Students</div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="text-muted text-uppercase small mb-1">Total Students</p>
+                                                    <h3 class="mb-0 fw-bold">{{$studentCount}}</h3>
                                                 </div>
-                                                <span class="badge bg-dark rounded-pill">{{$studentCount}}</span>
+                                                <div class="bg-dark bg-opacity-10 p-3 rounded">
+                                                    <i class="bi bi-person-lines-fill text-dark fs-4"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col">
-                                    <div class="card rounded-pill">
+                                <div class="col-md-3">
+                                    <div class="card border-0 shadow-sm">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="ms-2 me-auto">
-                                                    <div class="fw-bold"><i class="bi bi-person-lines-fill me-3"></i> Total
-                                                        Teachers</div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="text-muted text-uppercase small mb-1">Total Teachers</p>
+                                                    <h3 class="mb-0 fw-bold">{{$teacherCount}}</h3>
                                                 </div>
-                                                <span class="badge bg-dark rounded-pill">{{$teacherCount}}</span>
+                                                <div class="bg-dark bg-opacity-10 p-3 rounded">
+                                                    <i class="bi bi-person-lines-fill text-dark fs-4"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 @if(Auth::user()->hasRole('Student'))
-                                    <div class="col">
-                                        <div class="card rounded-pill border-danger shadow-sm">
+                                    <div class="col-md-3">
+                                        <div class="card border-0 shadow-sm">
                                             <div class="card-body">
-                                                <div class="d-flex justify-content-between align-items-start text-danger">
-                                                    <div class="ms-2 me-auto">
-                                                        <div class="fw-bold"><i class="bi bi-wallet2 me-3"></i> Balance</div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p class="text-muted text-uppercase small mb-1">Balance</p>
+                                                        <h3 class="mb-0 fw-bold text-danger">₦{{ number_format($outstandingBalance, 2) }}</h3>
                                                     </div>
-                                                    <span
-                                                        class="badge bg-danger rounded-pill">₦{{ number_format($outstandingBalance, 2) }}</span>
+                                                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                                        <i class="bi bi-wallet2 text-danger fs-4"></i>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 @endif
-                                <div class="col">
-                                    <div class="card rounded-pill">
+                                <div class="col-md-3">
+                                    <div class="card border-0 shadow-sm">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start text-dark">
-                                                <div class="ms-2 me-auto">
-                                                    <div class="fw-bold"><i class="bi bi-diagram-3 me-3"></i> Total Classes
-                                                    </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="text-muted text-uppercase small mb-1">Total Classes</p>
+                                                    <h3 class="mb-0 fw-bold">{{ $classCount }}</h3>
                                                 </div>
-                                                <span class="badge bg-dark rounded-pill">{{ $classCount }}</span>
+                                                <div class="bg-dark bg-opacity-10 p-3 rounded">
+                                                    <i class="bi bi-diagram-3 text-dark fs-4"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

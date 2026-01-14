@@ -43,10 +43,10 @@ class BillingService
                 $q->where('session_id', $sessionId);
             })
             ->with([
-                'promotions' => function ($q) use ($sessionId) {
-                    $q->where('session_id', $sessionId);
-                }
-            ])
+                    'promotions' => function ($q) use ($sessionId) {
+                        $q->where('session_id', $sessionId);
+                    }
+                ])
             ->get();
 
         if ($students->isEmpty()) {
@@ -115,8 +115,9 @@ class BillingService
                         $this->walletService->charge(
                             $student->id,
                             $feeTemplate->amount,
-                            "School Fee Billing: " . ($feeTemplate->feeHead->name ?? 'Misc'),
-                            $studentFee
+                            'student_fee',
+                            $studentFee->id,
+                            "School Fee Billing: " . ($feeTemplate->feeHead->name ?? 'Misc')
                         );
 
                         $totalAmount += $feeTemplate->amount;

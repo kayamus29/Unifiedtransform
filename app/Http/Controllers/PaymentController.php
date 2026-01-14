@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\StudentPayment;
 use App\Models\User;
+use App\Models\StudentFee;
 use App\Models\SchoolClass;
 use App\Models\SchoolSession;
 use App\Models\Semester;

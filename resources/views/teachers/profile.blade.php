@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <style>
@@ -11,7 +11,7 @@
 <div class="container">
     <div class="row justify-content-start">
         @include('layouts.left-menu')
-        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
             <div class="row pt-2">
                 <div class="col ps-4">
                     <h1 class="display-6 mb-3">
@@ -47,7 +47,7 @@
                             <div class="col-sm-8 col-md-9">
                                 <div class="p-3 mb-3 border rounded bg-white">
                                     <h6>Teacher Information</h6>
-                                    <table class="table table-responsive mt-3">
+                                    <div class="table-responsive"><table class="table  mt-3">
                                         <tbody>
                                             <tr>
                                                 <th scope="row">First Name:</th>
@@ -96,3 +96,4 @@
     </div>
 </div>
 @endsection
+

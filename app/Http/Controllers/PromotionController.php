@@ -17,6 +17,11 @@ class PromotionController extends Controller
 {
     use SchoolSession;
 
+    protected $schoolSessionRepository;
+    protected $userRepository;
+    protected $schoolClassRepository;
+    protected $schoolSectionRepository;
+    protected $promotionRepository;
     protected $promotionService;
 
     /**
@@ -83,12 +88,17 @@ class PromotionController extends Controller
      */
     public function reviewBoard(Request $request)
     {
+        $user = Auth::user();
+        if ($user->hasRole('Staff') || $user->role == 'staff') {
+            abort(403, 'Staff members are not authorized to view the Promotion Review Board.');
+        }
+
         $session_id = $this->getSchoolCurrentSession();
         $class_id = $request->query('class_id');
         $section_id = $request->query('section_id');
 
         $classes = $this->schoolClassRepository->getAllBySession($session_id);
-        $sections = $section_id ? $this->schoolSectionRepository->getAllByClass($class_id) : [];
+        $sections = $class_id ? $this->schoolSectionRepository->getAllByClassId($class_id) : [];
 
         $reviews = [];
         if ($class_id && $section_id) {
@@ -110,6 +120,11 @@ class PromotionController extends Controller
      */
     public function updateReview(Request $request)
     {
+        $user = Auth::user();
+        if ($user->hasRole('Staff') || $user->role == 'staff') {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'review_id' => 'required|exists:promotion_reviews,id',
             'final_status' => 'required|in:promoted,retained,probation',
@@ -134,8 +149,8 @@ class PromotionController extends Controller
      */
     public function finalizeBatch(Request $request)
     {
-        if (!Auth::user()->hasRole('Admin'))
-            abort(403);
+        if (!Auth::user()->hasAnyRole(['Admin', 'Teacher', 'Super Admin']))
+            abort(403, 'Unauthorized to finalize batches.');
 
         $session_id = $this->getSchoolCurrentSession();
         $class_id = $request->class_id;
@@ -177,7 +192,7 @@ class PromotionController extends Controller
      * Display a listing of the resource.
      * @param  \Illuminate\Http\Request  $request
      * 
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function index(Request $request)
     {
@@ -213,7 +228,7 @@ class PromotionController extends Controller
      * Show the form for creating a new resource.
      * @param  \Illuminate\Http\Request  $request
      * 
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function create(Request $request)
     {
@@ -253,7 +268,7 @@ class PromotionController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
@@ -281,50 +296,5 @@ class PromotionController extends Controller
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Promotion  $promotion
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Promotion $promotion)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Promotion  $promotion
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Promotion $promotion)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Promotion  $promotion
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Promotion $promotion)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Promotion  $promotion
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Promotion $promotion)
-    {
-        //
     }
 }

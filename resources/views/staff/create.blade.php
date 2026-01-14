@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row justify-content-start">
             @include('layouts.left-menu')
-            <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
                 <div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
                     <h1 class="h3 mb-0 text-gray-800">Add New Staff</h1>
                     <a href="{{ route('staff.index') }}" class="btn btn-secondary">
@@ -17,10 +17,10 @@
                         <h6 class="m-0 font-weight-bold text-primary">Personnel Details</h6>
                     </div>
                     <div class="card-body">
-                        @if ($errors->any())
+                        @if ((is_array($errors) && count($errors) > 0) || (is_object($errors) && $errors->any()))
                             <div class="alert alert-danger">
                                 <ul>
-                                    @foreach ($errors->all() as $error)
+                                    @foreach ((is_array($errors) ? $errors : $errors->all()) as $error)
                                         <li>{{ $error }}</li>
                                     @endforeach
                                 </ul>

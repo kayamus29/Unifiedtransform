@@ -4,12 +4,19 @@
     <div class="container">
         <div class="row justify-content-start">
             @include('layouts.left-menu')
-            <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
                 <div class="row pt-2">
                     <div class="col ps-4">
                         <h1 class="display-6 mb-3">
                             <i class="bi bi-shield-check"></i> Promotion Review Board
                         </h1>
+                        <nav aria-label="breadcrumb" class="mb-4">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{{route('home')}}">Home</a></li>
+                                <li class="breadcrumb-item"><a href="{{route('promotions.index')}}">Promotions</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Review Board</li>
+                            </ol>
+                        </nav>
                         @include('session-messages')
 
                         <!-- Filers -->
@@ -24,7 +31,8 @@
                                             <option value="">Select Class</option>
                                             @foreach($classes as $c)
                                                 <option value="{{ $c->id }}" {{ $class_id == $c->id ? 'selected' : '' }}>
-                                                    {{ $c->class_name }}</option>
+                                                    {{ $c->class_name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -34,7 +42,8 @@
                                             <option value="">Select Section</option>
                                             @foreach($sections as $s)
                                                 <option value="{{ $s->id }}" {{ $section_id == $s->id ? 'selected' : '' }}>
-                                                    {{ $s->section_name }}</option>
+                                                    {{ $s->section_name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -43,7 +52,7 @@
                                             <i class="bi bi-search"></i> Load Data
                                         </button>
                                     </div>
-                                    @if(count($reviews) > 0 && Auth::user()->hasRole('Admin'))
+                                    @if(count($reviews) > 0 && Auth::user()->hasAnyRole(['Admin', 'Teacher', 'Super Admin']))
                                         <div class="col-md-2">
                                             <button type="button" class="btn btn-success w-100" data-bs-toggle="modal"
                                                 data-bs-target="#finalizeModal">
@@ -82,7 +91,8 @@
                                                                 </div>
                                                                 <div>
                                                                     <div class="fw-bold">{{ $review->student->first_name }}
-                                                                        {{ $review->student->last_name }}</div>
+                                                                        {{ $review->student->last_name }}
+                                                                    </div>
                                                                     <small class="text-muted">ID:
                                                                         {{ $review->student->id_card_number }}</small>
                                                                 </div>
@@ -118,10 +128,18 @@
                                                         </td>
                                                         <td class="text-end pe-3">
                                                             @if(!$review->is_finalized)
-                                                                <button class="btn btn-sm btn-outline-secondary"
-                                                                    onclick="openOverrideModal({{ $review->id }}, '{{ $review->final_status }}', '{{ $review->override_comment }}')">
-                                                                    <i class="bi bi-pencil-square"></i> Review
-                                                                </button>
+                                                                <div class="btn-group btn-group-sm">
+                                                                    <button class="btn btn-outline-success"
+                                                                        onclick="quickApprove({{ $review->id }}, '{{ $review->calculated_status }}')"
+                                                                        title="Approve Calculated Status">
+                                                                        <i class="bi bi-check-lg"></i>
+                                                                    </button>
+                                                                    <button class="btn btn-outline-secondary"
+                                                                        onclick="openOverrideModal({{ $review->id }}, '{{ $review->final_status }}', '{{ $review->override_comment }}')"
+                                                                        title="Manual Override">
+                                                                        <i class="bi bi-pencil-square"></i>
+                                                                    </button>
+                                                                </div>
                                                             @else
                                                                 <span class="text-success small fw-bold"><i class="bi bi-lock-fill"></i>
                                                                     Finalized</span>
@@ -162,9 +180,9 @@
                     <div class="mb-3">
                         <label class="form-label">Review Status</label>
                         <select id="modal_final_status" class="form-select">
-                            <option value="promoted text-success">Promoted</option>
-                            <option value="retained text-danger">Retained</option>
-                            <option value="probation text-warning">Probation</option>
+                            <option value="promoted">Promoted</option>
+                            <option value="retained">Retained</option>
+                            <option value="probation">Probation</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -240,6 +258,19 @@
             currentOverrideModal.show();
         }
 
+        function quickApprove(reviewId, calculatedStatus) {
+            if (!confirm('Confirm the SYSTEM CALCULATED status: ' + calculatedStatus.toUpperCase() + '?\n\n(This will discard any manual overrides)')) return;
+
+            const data = {
+                review_id: reviewId,
+                final_status: calculatedStatus,
+                override_comment: 'Approved by Teacher', // Default comment to pass validation
+                _token: '{{ csrf_token() }}'
+            };
+
+            submitReviewData(data);
+        }
+
         function submitOverride() {
             const data = {
                 review_id: document.getElementById('modal_review_id').value,
@@ -248,16 +279,36 @@
                 _token: '{{ csrf_token() }}'
             };
 
+            submitReviewData(data);
+        }
+
+        function submitReviewData(data) {
             fetch("{{ route('promotions.review.update') }}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(data)
             })
-                .then(res => res.json())
+                .then(async res => {
+                    const json = await res.json();
+                    if (!res.ok) {
+                        let errorMsg = json.message || 'Failed to save';
+                        if (json.errors) {
+                            errorMsg += '\n' + Object.values(json.errors).flat().join('\n');
+                        }
+                        throw new Error(errorMsg);
+                    }
+                    return json;
+                })
                 .then(data => {
                     if (data.success) {
-                        location.reload(); // Simple reload for demo, AJAX update would be better
+                        location.reload();
                     }
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
                 });
         }
     </script>

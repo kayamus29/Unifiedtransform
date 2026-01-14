@@ -79,7 +79,10 @@ class PromotionService
     public function evaluateStatus(array $performance, PromotionPolicy $policy)
     {
         if (empty($performance['courses'])) {
-            return 'retained';
+            return [
+                'status' => 'retained',
+                'violations' => ['No courses found for student']
+            ];
         }
 
         $status = 'promoted';
@@ -92,7 +95,7 @@ class PromotionService
         }
 
         // 2. Check Mandatory Courses
-        if ($policy->mandatory_course_ids) {
+        if ($policy->mandatory_course_ids && is_array($policy->mandatory_course_ids) && count($policy->mandatory_course_ids) > 0) {
             foreach ($policy->mandatory_course_ids as $courseId) {
                 $courseData = $performance['courses'][$courseId] ?? null;
                 if (!$courseData || $courseData['annual_avg'] < 50) { // Mandatory subjects must pass at 50%
@@ -142,21 +145,35 @@ class PromotionService
             $performance = $this->calculateStudentPerformance($studentId, $sessionId);
             $evaluation = $this->evaluateStatus($performance, $policy);
 
-            PromotionReview::updateOrCreate(
-                [
-                    'student_id' => $studentId,
-                    'session_id' => $sessionId,
-                    'class_id' => $classId,
-                    'section_id' => $sectionId,
-                ],
-                [
-                    'calculated_average' => $performance['total_avg'],
-                    'calculated_status' => $evaluation['status'],
-                    'final_status' => $evaluation['status'], // Default to calculated
-                    'is_finalized' => false,
-                    'override_comment' => !empty($evaluation['violations']) ? implode('; ', $evaluation['violations']) : null
-                ]
-            );
+            $review = PromotionReview::firstOrNew([
+                'student_id' => $studentId,
+                'session_id' => $sessionId,
+                'class_id' => $classId,
+                'section_id' => $sectionId,
+            ]);
+
+            // Always update calculated metrics
+            $review->calculated_average = $performance['total_avg'];
+            $review->calculated_status = $evaluation['status'];
+
+            // Logic for Final Status & Comments
+            if (!$review->exists) {
+                // New Record: Sync everything
+                $review->final_status = $evaluation['status'];
+                $review->is_finalized = false;
+                $review->is_overridden = false;
+                $review->override_comment = !empty($evaluation['violations']) ? implode('; ', $evaluation['violations']) : null;
+            } else {
+                // Existing Record: Only update final_status if NOT validly overridden/finalized
+                if (!$review->is_finalized && !$review->is_overridden) {
+                    $review->final_status = $evaluation['status'];
+                    // Only update comment if it's currently a system violation message (or empty)
+                    // We avoid overwriting manual teacher notes.
+                    $review->override_comment = !empty($evaluation['violations']) ? implode('; ', $evaluation['violations']) : null;
+                }
+            }
+
+            $review->save();
         }
     }
 }

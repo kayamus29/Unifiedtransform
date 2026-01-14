@@ -3,11 +3,11 @@
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/results-dashboard.css') }}">
 
-<div class="container-fluid pb-5">
+<div class="container pb-5">
     <div class="row justify-content-start">
         @include('layouts.left-menu')
         
-        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
             <div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
                 <h1 class="h3 mb-0 text-gray-800 fw-bold">Admin Results Audit</h1>
             </div>
@@ -38,7 +38,7 @@
                         <span class="badge bg-light text-dark border shadow-sm px-3">Session 2026/2027</span>
                     </div>
                     <div class="card-body p-0">
-                        <div class="table-container">
+                        <div class="table-responsive">
                             <table class="results-grid">
                                 <thead>
                                     <tr>
@@ -109,3 +109,4 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="{{ asset('js/results-dashboard.js') }}"></script>
 @endsection
+

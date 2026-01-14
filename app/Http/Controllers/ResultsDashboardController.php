@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Traits\SchoolSession;
 use App\Interfaces\SchoolSessionInterface;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 use Exception;
 
 class ResultsDashboardController extends Controller
@@ -177,12 +178,6 @@ class ResultsDashboardController extends Controller
         $session_id = $this->getSchoolCurrentSession();
         $semesters = Semester::where('session_id', $session_id)->orderBy('id')->get();
 
-        // Apply Financial Withholding Gate
-        if (!\App\Classes\AcademicGate::canViewResults($student)) {
-            $withheld = true;
-            return view('results.student', compact('student', 'session_id', 'semesters', 'withheld'));
-        }
-
         // Get all courses student is registered in (via Promotion -> Class -> Courses)
         $promotion = Promotion::where('student_id', $student->id)
             ->where('session_id', $session_id)
@@ -190,16 +185,81 @@ class ResultsDashboardController extends Controller
             ->first();
 
         if (!$promotion) {
-            return view('results.student', ['error' => 'No active enrollment found for current session.']);
+            return view('results.student', [
+                'student' => $student,
+                'session_id' => $session_id,
+                'semesters' => $semesters,
+                'error' => 'No active enrollment found for current session.'
+            ]);
+        }
+
+        // Apply Financial Withholding Gate
+        if (!\App\Classes\AcademicGate::canViewResults($student)) {
+            $withheld = true;
+            return view('results.student', compact('student', 'session_id', 'semesters', 'withheld', 'promotion'));
         }
 
         $courses = $promotion->schoolClass->courses;
 
-        // Fetch all final marks for this student
-        $results = FinalMark::where('student_id', $student->id)
+        // 1. Fetch Final Marks (Official)
+        $finalResults = FinalMark::where('student_id', $student->id)
             ->where('session_id', $session_id)
             ->get()
             ->groupBy('course_id');
+
+        // 2. Fetch Provisional Marks (Real-time)
+        // We only fetch these if we want to show provisional data.
+        // It's efficient to fetch all for the student/session to fill gaps.
+        $rawMarks = Mark::with('exam')
+            ->where('student_id', $student->id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->groupBy('course_id');
+
+        $results = [];
+
+        foreach ($courses as $course) {
+            // Prefer Final Result if it exists
+            if (isset($finalResults[$course->id])) {
+                $results[$course->id] = $finalResults[$course->id];
+            } else {
+                // Construct Provisional Result from Raw Marks
+                if (isset($rawMarks[$course->id])) {
+                    $courseMarks = $rawMarks[$course->id];
+                    // Group by Semester
+                    $provisionalBySemester = $courseMarks->groupBy(function ($item) {
+                        return $item->exam->semester_id;
+                    });
+
+                    $simulatedFinalMarks = collect();
+
+                    foreach ($provisionalBySemester as $semesterId => $marks) {
+                        $total = $marks->sum('marks'); // Sum of (Exam + CA1 + CA2) for all exams in this semester?
+                        // Wait, usually multiple exams per semester? Or one exam per semester?
+                        // Usually 1 exam + CAs per course per semester.
+                        // But if there are multiple exams (e.g. Midterm + Final), the Logic in MarkController sums them?
+                        // Let's check MarkController logic. It stores 'marks' = sum(breakdown).
+                        // Checks for duplicate exam entries?
+                        // Mark model has 'exam_id'.
+                        // If there are multiple exams for one course in one semester, we normally sum them.
+
+                        $simulated = new FinalMark([
+                            'student_id' => $student->id,
+                            'course_id' => $course->id,
+                            'semester_id' => $semesterId,
+                            'session_id' => $session_id,
+                            'final_marks' => $total,
+                            'is_provisional' => true // Virtual attribute
+                        ]);
+                        $simulatedFinalMarks->push($simulated);
+                    }
+
+                    if ($simulatedFinalMarks->isNotEmpty()) {
+                        $results[$course->id] = $simulatedFinalMarks;
+                    }
+                }
+            }
+        }
 
         return view('results.student', compact('student', 'semesters', 'courses', 'results', 'promotion'));
     }
@@ -273,6 +333,68 @@ class ResultsDashboardController extends Controller
             'success' => true,
             'assessments' => $marks,
             'summary' => $finalMark
+        ]);
+    }
+
+    /**
+     * Student View (React/Inertia)
+     */
+    public function studentViewReact()
+    {
+        $student = Auth::user();
+        if (!$student->hasRole('Student')) {
+            abort(403);
+        }
+
+        $session_id = $this->getSchoolCurrentSession();
+        $semesters = Semester::where('session_id', $session_id)->orderBy('id')->get();
+
+        // Apply Financial Withholding Gate
+        if (!\App\Classes\AcademicGate::canViewResults($student)) {
+            return Inertia::render('Results/StudentDashboard', [
+                'student' => $student,
+                'semesters' => $semesters,
+                'courses' => [],
+                'results' => [],
+                'promotion' => null,
+                'withheld' => true,
+            ]);
+        }
+
+        // Get all courses student is registered in (via Promotion -> Class -> Courses)
+        $promotion = Promotion::where('student_id', $student->id)
+            ->where('session_id', $session_id)
+            ->with(['schoolClass.courses', 'schoolClass', 'session'])
+            ->first();
+
+        if (!$promotion) {
+            return Inertia::render('Results/StudentDashboard', [
+                'student' => $student,
+                'semesters' => $semesters,
+                'courses' => [],
+                'results' => [],
+                'promotion' => null,
+                'withheld' => false,
+                'error' => 'No active enrollment found for current session.',
+            ]);
+        }
+
+        $courses = $promotion->schoolClass->courses;
+
+        // Fetch all final marks for this student
+        $results = FinalMark::where('student_id', $student->id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->groupBy('course_id')
+            ->toArray();
+
+        return Inertia::render('Results/StudentDashboard', [
+            'student' => $student,
+            'semesters' => $semesters,
+            'courses' => $courses,
+            'results' => $results,
+            'promotion' => $promotion,
+            'withheld' => false,
         ]);
     }
 }

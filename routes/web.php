@@ -121,6 +121,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/results/teacher', [ResultsDashboardController::class, 'teacherView'])->name('results.teacher');
     Route::get('/results/section', [ResultsDashboardController::class, 'sectionView'])->name('results.section');
     Route::get('/results/student', [ResultsDashboardController::class, 'studentView'])->name('results.student');
+    Route::get('/results/student-react', [ResultsDashboardController::class, 'studentViewReact'])->name('results.student.react');
     Route::get('/results/admin', [ResultsDashboardController::class, 'adminView'])->name('results.admin');
     Route::get('/ajax/results/breakdown', [ResultsDashboardController::class, 'getBreakdownAjax'])->name('ajax.results.breakdown');
 
@@ -195,6 +196,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Expenses
     Route::get('/accounting/expenses', [App\Http\Controllers\ExpenseController::class, 'index'])->name('accounting.expenses.index');
+    Route::get('/accounting/my-expenses', [App\Http\Controllers\ExpenseController::class, 'myExpenses'])->name('accounting.expenses.my');
+
+
+    Route::get('/accounting/debtors', [App\Http\Controllers\AccountingDashboardController::class, 'debtors'])->name('accounting.debtors.index');
     Route::post('/accounting/expenses', [App\Http\Controllers\ExpenseController::class, 'store'])->name('accounting.expenses.store');
     Route::post('/accounting/expenses/{id}/status', [App\Http\Controllers\ExpenseController::class, 'updateStatus'])->name('accounting.expenses.updateStatus');
     Route::post('/accounting/expenses/{id}/correct', [App\Http\Controllers\ExpenseController::class, 'correct'])->name('accounting.expenses.correct');

@@ -1,4 +1,4 @@
-<div class="col-xs-1 col-sm-1 col-md-1 col-lg-2 col-xl-2 col-xxl-2 border-rt-e6 px-0">
+<div class="col-xs-12 col-sm-12 col-md-3 col-lg-2 border-rt-e6 px-0 no-print">
     <div class="d-flex flex-column align-items-center align-items-sm-start ">
         <ul class="nav flex-column pt-2 w-100">
             <li class="nav-item">
@@ -142,14 +142,14 @@
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Courses</span></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('fees') ? 'active' : '' }}"
-                                href="{{route('fees')}}"><i
+                            <a class="nav-link {{ request()->routeIs('student.fees') ? 'active' : '' }}"
+                                href="{{route('student.fees')}}"><i
                                     class="bi bi-wallet2"></i> <span
                                     class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">My Fees</span></a>
                         </li>
 
             @endif
-            @if(!Auth::user()->hasRole('Student') && !Auth::user()->hasRole('Accountant') && Auth::user()->role != 'accountant')
+            @if(!Auth::user()->hasRole('Student') && !Auth::user()->hasRole('Accountant') && Auth::user()->role != 'accountant' && !Auth::user()->hasRole('Staff') && Auth::user()->role != 'staff')
                 <li class="nav-item border-bottom">
                     <a type="button" href="#exam-grade-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('exams*') ? 'active' : '' }}"><i
@@ -236,6 +236,8 @@
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Academic</span></a>
                 </li>
             @endif
+                {{-- Accountants do not need Promotion/Graduation access --}}
+                @if(!Auth::user()->hasRole('Accountant') && Auth::user()->role != 'accountant')
                 <li class="nav-item border-bottom">
                     <a type="button" href="#promotions-submenu" data-bs-toggle="collapse"
                         class="d-flex nav-link {{ request()->is('promotions*') ? 'active' : '' }}"><i
@@ -257,11 +259,13 @@
                                 </a>
                             </li>
                         @endif
+                        @if(!Auth::user()->hasRole('Student'))
                         <li class="nav-item w-100" {{ request()->routeIs('promotions.review') ? 'style="font-weight:bold;"' : '' }}>
                             <a class="nav-link" href="{{route('promotions.review')}}">
                                 <i class="bi bi-shield-check me-2"></i> Review Board
                             </a>
                         </li>
+                        @endif
                         @if(Auth::user()->hasRole('Admin'))
                             <li class="nav-item w-100" {{ request()->routeIs('academics.graduation.index') ? 'style="font-weight:bold;"' : '' }}>
                                 <a class="nav-link" href="{{route('academics.graduation.index')}}">
@@ -278,6 +282,7 @@
                         @endif
                     </ul>
                 </li>
+                @endif
             @if (Auth::user()->hasAnyRole(['Admin', 'Accountant']))
                 <li class="nav-item">
                     <a type="button" href="#accounting-submenu" data-bs-toggle="collapse"
@@ -300,6 +305,8 @@
                         <li class="nav-item w-100" {{ request()->routeIs('accounting.fees.class.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                 href="{{route('accounting.fees.class.index')}}"><i class="bi bi-diagram-3 me-2"></i> Assign
                                 Fees</a></li>
+                        <li class="nav-item w-100" {{ request()->routeIs('accounting.debtors.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link text-danger"
+                                href="{{route('accounting.debtors.index')}}"><i class="bi bi-exclamation-circle me-2"></i> Debtors List</a></li>
                             <li class="nav-item w-100" {{ request()->is('accounting/fees/student*') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
                                     href="{{route('accounting.fees.student.index')}}"><i class="bi bi-plus-square me-2"></i> Addons</a></li>
                         <li class="nav-item w-100" {{ request()->routeIs('accounting.payments.index') ? 'style="font-weight:bold;"' : '' }}><a class="nav-link"
@@ -335,9 +342,13 @@
                             class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Audit Logs</span></a>
                 </li>
                 @endcan
+            @endif
+
+            @if(Auth::user()->hasRole('Staff') || Auth::user()->role == 'staff')
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#" aria-disabled="true"><i class="bi bi-journals"></i> <span
-                            class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Library</span></a>
+                    <a class="nav-link {{ request()->routeIs('accounting.expenses.my') ? 'active' : '' }}" href="{{route('accounting.expenses.my')}}">
+                        <i class="bi bi-receipt"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">My Expenses</span>
+                    </a>
                 </li>
             @endif
         </ul>

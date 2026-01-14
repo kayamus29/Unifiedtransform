@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\SchoolClass;
 use App\Services\GraduationService;
 use App\Traits\SchoolSession;
+use App\Interfaces\SchoolSessionInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,11 +15,13 @@ class GraduationController extends Controller
     use SchoolSession;
 
     protected $graduationService;
+    protected $schoolSessionRepository;
 
-    public function __construct(GraduationService $graduationService)
+    public function __construct(GraduationService $graduationService, SchoolSessionInterface $schoolSessionRepository)
     {
         $this->middleware(['auth', 'role:Admin']);
         $this->graduationService = $graduationService;
+        $this->schoolSessionRepository = $schoolSessionRepository;
     }
 
     /**

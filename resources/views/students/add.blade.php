@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row justify-content-start">
             @include('layouts.left-menu')
-            <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
                 <div class="row pt-2">
                     <div class="col ps-4">
                         <h1 class="display-6 mb-3">
@@ -63,13 +63,13 @@
                                         <input type="date" class="form-control" id="inputBirthday" name="birthday"
                                             placeholder="Birthday" required value="{{old('birthday')}}">
                                     </div>
-                                    <div class="col-3-md">
+                                    <div class="col-md-3">
                                         <label for="inputAddress" class="form-label">Address<sup><i
                                                     class="bi bi-asterisk text-primary"></i></sup></label>
                                         <input type="text" class="form-control" id="inputAddress" name="address"
                                             placeholder="634 Main St" required value="{{old('address')}}">
                                     </div>
-                                    <div class="col-3-md">
+                                    <div class="col-md-3">
                                         <label for="inputAddress2" class="form-label">Address 2</label>
                                         <input type="text" class="form-control" id="inputAddress2" name="address2"
                                             placeholder="Apartment, studio, or floor" value="{{old('address2')}}">
@@ -136,7 +136,7 @@
                                         <input type="text" class="form-control" id="inputPhone" name="phone"
                                             placeholder="+880 01......" required value="{{old('phone')}}">
                                     </div>
-                                    <div class="col-5-md">
+                                    <div class="col-md-5">
                                         <label for="inputIdCardNumber" class="form-label">Id Card Number<sup><i
                                                     class="bi bi-asterisk text-primary"></i></sup></label>
                                         <input type="text" class="form-control" id="inputIdCardNumber" name="id_card_number"
@@ -182,7 +182,7 @@
                                             name="guardian_phone" placeholder="+880 01......"
                                             value="{{old('guardian_phone')}}">
                                     </div>
-                                    <div class="col-4-md">
+                                    <div class="col-md-4">
                                         <label for="inputParentAddress" class="form-label">Address<sup><i
                                                     class="bi bi-asterisk text-primary"></i></sup></label>
                                         <input type="text" class="form-control" id="inputParentAddress"
@@ -221,7 +221,7 @@
                                     <input type="hidden" name="session_id" value="{{$current_school_session_id}}">
                                 </div>
                                 <div class="row mt-4">
-                                    <div class="col-12-md">
+                                    <div class="col-md-12">
                                         <button type="submit" class="btn btn-sm btn-outline-primary"><i
                                                 class="bi bi-person-plus"></i> Add</button>
                                     </div>

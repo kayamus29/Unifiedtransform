@@ -12,13 +12,43 @@ class ExpenseController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:Accountant|Admin']);
+        $this->middleware('auth');
+
+        // middleware for general access to this controller
+        $this->middleware(function ($request, $next) {
+            $user = Auth::user();
+            if (
+                $user->hasAnyRole(['Accountant', 'Admin', 'Staff']) ||
+                in_array($user->role, ['accountant', 'admin', 'staff'])
+            ) {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized access to Expenses module.');
+        });
+
+        // Restrict Admin/Accountant only methods
+        $this->middleware(function ($request, $next) {
+            $user = Auth::user();
+            if (
+                $user->hasAnyRole(['Accountant', 'Admin']) ||
+                in_array($user->role, ['accountant', 'admin'])
+            ) {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized action.');
+        })->only(['index', 'updateStatus', 'correct']);
     }
 
     public function index()
     {
         $expenses = Expense::with(['requester', 'approver'])->latest('expense_date')->paginate(20);
         return view('accounting.expenses.index', compact('expenses'));
+    }
+
+    public function myExpenses()
+    {
+        $expenses = Expense::where('user_id', Auth::id())->latest('expense_date')->paginate(20);
+        return view('accounting.expenses.my_expenses', compact('expenses'));
     }
 
     public function store(Request $request)
@@ -94,9 +124,18 @@ class ExpenseController extends Controller
     {
         try {
             $expense = Expense::findOrFail($id);
-            if ($expense->status !== 'pending' && Auth::user()->role !== 'admin') {
+            $user = Auth::user();
+            $isAdminOrAccountant = $user->hasAnyRole(['Accountant', 'Admin']) || in_array($user->role, ['accountant', 'admin']);
+
+            // If not admin/accountant, must be owner
+            if (!$isAdminOrAccountant && $expense->user_id !== $user->id) {
+                return redirect()->back()->with('error', 'You can only delete your own expenses.');
+            }
+
+            if ($expense->status !== 'pending' && !$isAdminOrAccountant) {
                 return redirect()->back()->with('error', 'Only pending expenses can be deleted.');
             }
+
             $expense->delete();
             return redirect()->back()->with('success', 'Expense deleted successfully.');
         } catch (Exception $e) {

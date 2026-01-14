@@ -249,6 +249,17 @@ class MarkController extends Controller
             ]
         ]);
 
+        // Check if marks are already finalized for this batch
+        $isFinalized = \App\Models\FinalMark::where('session_id', $current_school_session_id)
+            ->where('class_id', $request->class_id)
+            ->where('section_id', $request->section_id)
+            ->where('course_id', $request->course_id)
+            ->exists();
+
+        if ($isFinalized) {
+            return back()->withError('Marks have been finalized and locked. You cannot edit them anymore.');
+        }
+
         $rows = [];
         $errors = [];
         if ($request->student_mark) {

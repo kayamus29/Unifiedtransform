@@ -92,13 +92,22 @@ class StudentPortalController extends Controller
         $student = Auth::user();
         $current_session_id = $this->getSchoolCurrentSession();
 
-        $attendance = Attendance::where('student_id', $student->id)
-            ->where('session_id', $current_session_id)
-            ->with(['schoolClass', 'section', 'course'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        // Apply Financial Withholding Gate
+        // Apply Financial Withholding Gate
+        if (!\App\Classes\AcademicGate::canViewResults($student)) {
+            $withheld = true;
+            // Pass empty paginator to prevent view crash
+            $attendance = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
+        } else {
+            $withheld = false;
+            $attendance = Attendance::where('student_id', $student->id)
+                ->where('session_id', $current_session_id)
+                ->with(['schoolClass', 'section', 'course'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+        }
 
-        return view('student.attendance', compact('attendance', 'student'));
+        return view('student.attendance', compact('attendance', 'student', 'withheld'));
     }
 
     /**
@@ -134,7 +143,7 @@ class StudentPortalController extends Controller
         if ($promotion) {
             $routines = Routine::where('section_id', $promotion->section_id)
                 ->where('session_id', $current_session_id)
-                ->with(['course', 'teacher'])
+                ->with(['course'])
                 ->orderBy('weekday')
                 ->get();
         }

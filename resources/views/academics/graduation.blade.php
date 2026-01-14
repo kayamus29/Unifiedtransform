@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row justify-content-start">
             @include('layouts.left-menu')
-            <div class="col-xs-11 col-sm-11 col-md-11 col-lg-10 col-xl-10 col-xxl-10">
+            <div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
                 <div class="row pt-2">
                     <div class="col ps-4">
                         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -173,3 +173,4 @@
         .bg-info-subtle { background-color: #cff4fc; }
     </style>
 @endsection
+
