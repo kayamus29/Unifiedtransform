@@ -242,6 +242,54 @@
 
                 @endif
 
+                <!-- Remarks Section -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-chat-quote me-2 text-primary"></i>Term Remarks & Comments
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach($semesters as $semester)
+                            @php
+                                $comment = isset($comments) ? $comments->get($semester->id) : null;
+                            @endphp
+                            <div class="mb-4 {{ !$loop->last ? 'border-bottom pb-4' : '' }}">
+                                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-calendar-event me-2"></i>{{ $semester->semester_name }}</h6>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="h-100 p-3 bg-light bg-opacity-50 rounded border">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-person-badge text-primary me-2"></i>
+                                                <span class="text-uppercase small fw-bold text-muted">Class Teacher's Remark</span>
+                                            </div>
+                                            @if($comment && $comment->teacher_comment)
+                                                <p class="mb-0 text-dark fst-italic">"{{ $comment->teacher_comment }}"</p>
+                                            @else
+                                                <p class="mb-0 text-muted small fst-italic">No remark yet.</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="h-100 p-3 bg-light bg-opacity-50 rounded border">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-person-check text-dark me-2"></i>
+                                                <span class="text-uppercase small fw-bold text-muted">Principal's Remark</span>
+                                            </div>
+                                            @if($comment && $comment->principal_comment)
+                                                <p class="mb-0 text-dark fst-italic">"{{ $comment->principal_comment }}"</p>
+                                            @else
+                                                <p class="mb-0 text-muted small fst-italic">No remark yet.</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
                 @include('layouts.footer')
                     </div>
                 </div>

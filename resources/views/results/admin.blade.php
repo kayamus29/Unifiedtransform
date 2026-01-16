@@ -80,6 +80,54 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Comments Section -->
+                <div class="card shadow-sm border-0 mt-4">
+                    <div class="card-header bg-white py-3">
+                         <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-chat-quote-fill me-2"></i>Report Comments Management</h6>
+                    </div>
+                    <div class="card-body">
+                         @foreach($semesters as $semester)
+                            @php
+                                $comment = isset($comments) ? $comments->get($semester->id) : null;
+                            @endphp
+                            <div class="mb-4 {{ !$loop->last ? 'border-bottom pb-4' : '' }}">
+                                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-calendar-event me-2"></i>{{ $semester->semester_name }}</h6>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <form action="{{ route('report.comments.store') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="student_id" value="{{ $student->id }}">
+                                            <input type="hidden" name="semester_id" value="{{ $semester->id }}">
+                                            <input type="hidden" name="type" value="teacher">
+                                            
+                                            <label class="form-label text-muted small fw-bold text-uppercase">Class Teacher's Remark</label>
+                                            <div class="input-group">
+                                                <textarea class="form-control" name="comment" rows="3">{{ $comment ? $comment->teacher_comment : '' }}</textarea>
+                                                <button class="btn btn-outline-secondary" type="submit">Update</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <form action="{{ route('report.comments.store') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="student_id" value="{{ $student->id }}">
+                                            <input type="hidden" name="semester_id" value="{{ $semester->id }}">
+                                            <input type="hidden" name="type" value="principal">
+                                            
+                                            <label class="form-label text-muted small fw-bold text-uppercase">Principal's Remark</label>
+                                            <div class="input-group">
+                                                <textarea class="form-control" name="comment" rows="3">{{ $comment ? $comment->principal_comment : '' }}</textarea>
+                                                <button class="btn btn-primary" type="submit">Update</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                         @endforeach
+                    </div>
+                </div>
             @else
                 <div class="text-center py-5 bg-white rounded shadow-sm border">
                     <i class="bi bi-search fs-1 text-muted opacity-25"></i>

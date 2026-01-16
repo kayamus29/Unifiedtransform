@@ -51,6 +51,39 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="card shadow-sm border-0 mt-4">
+                            <div class="card-header bg-white border-bottom py-3">
+                                <h5 class="mb-0 fw-bold"><i class="bi bi-chat-quote me-2"></i>Remarks</h5>
+                            </div>
+                            <div class="card-body">
+                                @if(isset($semesters))
+                                    @foreach($semesters as $semester)
+                                        @php $comment = isset($comments) ? $comments->get($semester->id) : null; @endphp
+                                        <div class="mb-3 {{ !$loop->last ? 'border-bottom pb-3' : '' }}">
+                                            <h6 class="fw-bold text-primary">{{ $semester->semester_name }}</h6>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <small class="text-uppercase text-muted fw-bold">Class Teacher</small>
+                                                    <div class="bg-light p-3 rounded mt-1">
+                                                        <i
+                                                            class="fst-italic text-dark">"{{ $comment->teacher_comment ?? 'No remark.' }}"</i>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <small class="text-uppercase text-muted fw-bold">Principal</small>
+                                                    <div class="bg-light p-3 rounded mt-1">
+                                                        <i
+                                                            class="fst-italic text-dark">"{{ $comment->principal_comment ?? 'No remark.' }}"</i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 @include('layouts.footer')

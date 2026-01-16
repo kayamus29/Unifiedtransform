@@ -123,7 +123,14 @@ class StudentPortalController extends Controller
             ->with(['course', 'exam'])
             ->get();
 
-        return view('student.marks', compact('marks', 'student'));
+        $semesters = \App\Models\Semester::where('session_id', $current_session_id)->get();
+
+        $comments = \App\Models\StudentReportComment::where('student_id', $student->id)
+            ->where('session_id', $current_session_id)
+            ->get()
+            ->keyBy('semester_id');
+
+        return view('student.marks', compact('marks', 'student', 'comments', 'semesters'));
     }
 
     /**

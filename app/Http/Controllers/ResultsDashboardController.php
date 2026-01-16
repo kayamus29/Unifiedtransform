@@ -157,12 +157,19 @@ class ResultsDashboardController extends Controller
                             ->where('session_id', $session_id)
                             ->get()
                             ->groupBy('course_id');
+
+                        $comments = \App\Models\StudentReportComment::where('student_id', $student_id)
+                            ->where('session_id', $session_id)
+                            ->get()
+                            ->keyBy('semester_id');
                     }
                 }
             }
         }
 
-        return view('results.section', compact('sections', 'students', 'selectedStudent', 'results', 'courses', 'semesters', 'section_id', 'student_id'));
+        $comments = $comments ?? collect();
+
+        return view('results.section', compact('sections', 'students', 'selectedStudent', 'results', 'courses', 'semesters', 'section_id', 'student_id', 'comments'));
     }
 
     /**
@@ -261,7 +268,12 @@ class ResultsDashboardController extends Controller
             }
         }
 
-        return view('results.student', compact('student', 'semesters', 'courses', 'results', 'promotion'));
+        $comments = \App\Models\StudentReportComment::where('student_id', $student->id)
+            ->where('session_id', $session_id)
+            ->get()
+            ->keyBy('semester_id');
+
+        return view('results.student', compact('student', 'semesters', 'courses', 'results', 'promotion', 'comments'));
     }
 
     /**
@@ -293,12 +305,18 @@ class ResultsDashboardController extends Controller
                     ->where('session_id', $session_id)
                     ->get()
                     ->groupBy('course_id');
+
+                $comments = \App\Models\StudentReportComment::where('student_id', $student_id)
+                    ->where('session_id', $session_id)
+                    ->get()
+                    ->keyBy('semester_id');
             }
         }
 
         $allStudents = User::role('Student')->get();
+        $comments = $comments ?? collect();
 
-        return view('results.admin', compact('student', 'results', 'courses', 'semesters', 'allStudents'));
+        return view('results.admin', compact('student', 'results', 'courses', 'semesters', 'allStudents', 'comments'));
     }
 
     /**

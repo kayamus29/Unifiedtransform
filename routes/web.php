@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/results/student-react', [ResultsDashboardController::class, 'studentViewReact'])->name('results.student.react');
     Route::get('/results/admin', [ResultsDashboardController::class, 'adminView'])->name('results.admin');
     Route::get('/ajax/results/breakdown', [ResultsDashboardController::class, 'getBreakdownAjax'])->name('ajax.results.breakdown');
+    Route::post('/report/comments/store', [App\Http\Controllers\ReportCommentController::class, 'store'])->name('report.comments.store');
 
     // Exams
     Route::get('/exams/view', [ExamController::class, 'index'])->name('exam.list.show');

@@ -253,6 +253,44 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- Remarks Section -->
+                                    <div class="card border-0 shadow-sm mt-4">
+                                        <div class="card-header bg-white border-bottom py-3">
+                                            <h5 class="mb-0 fw-bold text-dark">
+                                                <i class="bi bi-chat-quote me-2 text-primary"></i>Term Remarks & Comments
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            @foreach($semesters as $semester)
+                                                @php
+                                                    $comment = isset($comments) ? $comments->get($semester->id) : null;
+                                                @endphp
+                                                <div class="mb-4 {{ !$loop->last ? 'border-bottom pb-4' : '' }}">
+                                                    <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-calendar-event me-2"></i>{{ $semester->semester_name }}</h6>
+                                                    
+                                                    <form action="{{ route('report.comments.store') }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="student_id" value="{{ $selectedStudent->id }}">
+                                                        <input type="hidden" name="semester_id" value="{{ $semester->id }}">
+                                                        <input type="hidden" name="type" value="teacher">
+                                                        
+                                                        <label class="form-label text-muted small fw-bold text-uppercase">Class Teacher's Remark</label>
+                                                        <div class="input-group">
+                                                            <textarea class="form-control" name="comment" rows="2" placeholder="Enter remark...">{{ $comment ? $comment->teacher_comment : '' }}</textarea>
+                                                            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-save me-1"></i>Save</button>
+                                                        </div>
+                                                        @if($comment && $comment->principal_comment)
+                                                            <div class="mt-3 p-3 bg-light rounded border-start border-4 border-dark">
+                                                                <p class="mb-1 text-muted small fw-bold text-uppercase">Principal's Remark</p>
+                                                                <p class="mb-0 text-dark fst-italic">"{{ $comment->principal_comment }}"</p>
+                                                            </div>
+                                                        @endif
+                                                    </form>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 @else
                                     <!-- Empty State -->
                                     <div class="card border-0 shadow-sm">
