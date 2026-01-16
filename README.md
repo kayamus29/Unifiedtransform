@@ -173,6 +173,32 @@ If you prefer to run the application directly on your local machine:
     - Email: admin@ut.com
     - Password: password
 
+## 💻 Running on a New Computer
+
+If you are moving this project from one computer to another via GitHub, follow these exact steps to get it working.
+
+### 1. Basic Setup (Structure)
+1. **Clone the repository**: `git clone <your-repo-url>`
+2. **Install Composer dependencies**: `composer install`
+3. **Install NPM dependencies**: `npm install && npm run dev`
+4. **Environment File**: Copy `.env.example` to `.env` and update your database credentials ($DB_DATABASE, $DB_USERNAME, $DB_PASSWORD).
+5. **App Key**: Run `php artisan key:generate`
+6. **Create Folders**: Ensure `storage/app/purify` exists (create it if not).
+
+### 2. Transferring the Database (Data)
+Git only transfers the **code**, not your **data** (students, marks, comments). To move your data:
+
+**On the OLD computer:**
+1. Open your database tool (phpMyAdmin, MySQL Workbench, etc.).
+2. **Export** the `unifiedtransform` database to a `.sql` file.
+
+**On the NEW computer:**
+1. Create a new empty database named `unifiedtransform` (or whatever you named it in `.env`).
+2. **Import** the `.sql` file you exported from the old computer.
+
+> [!IMPORTANT]
+> If you don't care about the old data and want a fresh start, you can just run `php artisan migrate --seed` instead of importing a `.sql` file. This will create the tables and add some demo data.
+
 ## Steps to follow:
 Please carefully follow the steps to setup the school.
 
