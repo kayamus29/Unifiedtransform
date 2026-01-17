@@ -14,15 +14,13 @@ class RoleSeeder extends Seeder
         // 1. Reset Cached Roles/Permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. Define Permissions (Strict List)
+        // 2. Define Permissions
         $permissions = [
-            // Accountant
             'view accounting dashboard',
             'manage fee heads',
             'assign fees',
             'collect fees',
             'manage expenses',
-            // Teacher
             'view assigned classes',
             'take attendance',
             'manage marks',
@@ -31,15 +29,12 @@ class RoleSeeder extends Seeder
             'create exams',
             'view exams',
             'view assigned syllabus',
-            // Staff
             'staff check-in',
-            'create expense transfer', // Shared by Teacher & Staff
-            'create expenses', // New permission
-            // Student/Parent
+            'create expense transfer',
+            'create expenses',
             'view own attendance',
             'view own marks',
             'view child records',
-            // Admin Only (Explicitly defined for clarity)
             'assign teachers',
             'edit classes',
             'edit sections',
@@ -47,97 +42,50 @@ class RoleSeeder extends Seeder
             'view classes',
             'view audit logs',
             'view assigned students',
-            'view users',
+            'view users'
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // 3. Create Roles & Assign Permissions
+        // 3. Create Roles & Sync Permissions
+        $roles = [
+            'Admin' => [],
+            'Accountant' => ['view accounting dashboard', 'manage fee heads', 'assign fees', 'collect fees', 'manage expenses', 'staff check-in', 'create expenses'],
+            'Teacher' => ['view assigned classes', 'take attendance', 'manage marks', 'save marks', 'view marks', 'create exams', 'view exams', 'view assigned syllabus', 'staff check-in', 'create expense transfer', 'view assigned students'],
+            'Normal Staff' => ['staff check-in', 'create expense transfer'],
+            'Student' => ['view own attendance', 'view own marks'],
+            'Parent' => ['view child records'],
+        ];
 
-        // Admin: No permissions assigned (handled by Gate::before)
-        Role::firstOrCreate(['name' => 'Admin']);
-
-        // Accountant
-        $accountant = Role::firstOrCreate(['name' => 'Accountant']);
-        $accountant->syncPermissions([
-            'view accounting dashboard',
-            'manage fee heads',
-            'assign fees',
-            'collect fees',
-            'manage expenses',
-            'staff check-in', // Logic: Accountants usually check in too
-            'create expenses', // Assigned to Accountant
-        ]);
-
-        // Teacher
-        $teacher = Role::firstOrCreate(['name' => 'Teacher']);
-        $teacher->syncPermissions([
-            'view assigned classes',
-            'take attendance',
-            'manage marks',
-            'save marks',
-            'view marks',
-            'create exams',
-            'view exams',
-            'view assigned syllabus',
-            'staff check-in',
-            'create expense transfer',
-            'view assigned students',
-        ]);
-
-        // Normal Staff (covers existing 'librarian' & 'staff')
-        $staff = Role::firstOrCreate(['name' => 'Normal Staff']);
-        $staff->syncPermissions([
-            'staff check-in',
-            'create expense transfer',
-        ]);
-
-        // Student
-        $student = Role::firstOrCreate(['name' => 'Student']);
-        $student->syncPermissions([
-            'view own attendance',
-            'view own marks',
-        ]);
-
-        // Parent
-        $parent = Role::firstOrCreate(['name' => 'Parent']);
-        $parent->syncPermissions([
-            'view child records',
-        ]);
-
-        // 4. Migration Logic: Sync Legacy Roles to Spatie Roles
-        $users = User::all();
-        foreach ($users as $user) {
-            // Map legacy role string to Spatie Role
-            $roleToAssign = null;
-            switch (strtolower($user->role)) {
-                case 'admin':
-                    $roleToAssign = 'Admin';
-                    break;
-                case 'teacher':
-                    $roleToAssign = 'Teacher';
-                    break;
-                case 'accountant':
-                    $roleToAssign = 'Accountant';
-                    break;
-                case 'student':
-                    $roleToAssign = 'Student';
-                    break;
-                case 'parent':
-                    $roleToAssign = 'Parent';
-                    break;
-                case 'librarian':
-                case 'staff':
-                    $roleToAssign = 'Normal Staff';
-                    break;
-            }
-
-            if ($roleToAssign) {
-                // Sync roles to ensure clean state (removes previous roles if re-run)
-                $user->syncRoles($roleToAssign);
+        foreach ($roles as $name => $perms) {
+            $role = Role::firstOrCreate(['name' => $name]);
+            if (!empty($perms)) {
+                $role->syncPermissions($perms);
             }
         }
+
+        // 4. Robust User Role Sync
+        User::chunk(100, function ($users) {
+            foreach ($users as $user) {
+                if (!$user->role)
+                    continue;
+
+                $roleToAssign = match (strtolower($user->role)) {
+                    'admin' => 'Admin',
+                    'teacher' => 'Teacher',
+                    'accountant' => 'Accountant',
+                    'student' => 'Student',
+                    'parent' => 'Parent',
+                    'librarian', 'staff' => 'Normal Staff',
+                    default => null
+                };
+
+                if ($roleToAssign && !$user->hasRole($roleToAssign)) {
+                    $user->syncRoles($roleToAssign);
+                }
+            }
+        });
     }
 }

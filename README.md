@@ -92,112 +92,72 @@ Following features that exist in v1.X will be added in v2.X as well in future.
 - Managing certificates.
 - Supported other languages (Spanish, ...).
 
-## How to Start
-### Using Docker Container:
+## 🚀 Quick Start (Docker)
 
-#### Video instruction
+The fastest way to get started is using Docker.
 
-https://user-images.githubusercontent.com/9896315/231230479-bb497be3-024c-4568-b3ea-2b0e8f3501aa.mp4
+1. **Clone the repository**:
+   ```bash
+   git clone <your-repo-url>
+   cd Unifiedtransform
+   ```
 
-#### Document instruction
+2. **Setup Environment**:
+   ```bash
+   cp .env.example .env
+   ```
+   *(Optional: Edit `.env` to change database passwords if needed)*
 
-**[Docker](https://www.docker.com/)** is now supported and improved.
+3. **Launch**:
+   ```bash
+   docker compose up -d
+   ```
+   The application will automatically wait for the database, run migrations, seed core data, and optimize itself.
 
-[How To Set Up Laravel, Nginx, and MySQL With Docker Compose on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-laravel-nginx-and-mysql-with-docker-compose-on-ubuntu-20-04)
+4. **Access**:
+   Visit `http://localhost:8080`
+   - **Email**: `admin@ut.com`
+   - **Password**: `change_me` (Default)
 
-With the improved Docker setup, you will get:
-- Nginx
-- PHP 7.4
-- MySQL 5.7
+> [!CAUTION]
+> **SECURITY MANDATE**: You MUST change the default admin password immediately after first login. Navigate to **Profile -> Change Password** to rotate credentials.
 
-### Steps to install:
-1. Clone or download the repository.
-2. Create **purify** folder in `storage/app/` directory.
-3. Run `cp .env.example .env`.
-4. Run `docker-compose up -d`.
-5. Run `docker exec -it db sh`. Inside the shell, run:
+---
 
-    ```sh
-    :/# mysql -u root -p
-    ```
+## 🛠️ Manual Setup (XAMPP / VPS / CI)
 
-    Mysql **Root password**: `your_mysql_root_password` in the `docker-compose.yml` file. Then run following commands:
+If you are not using Docker:
 
-    ```sql
-    mysql> SHOW DATABASES;
-    mysql> GRANT ALL ON unifiedtransform.* TO 'unifiedtransform'@'%' IDENTIFIED BY 'secret';
-    mysql> FLUSH PRIVILEGES;
-    mysql> EXIT;
-    ```
-6. Finally, exit the container by running `exit` in the container shell.
-7. Run `docker exec -it app sh`. Inside the shell, run following commands:
+1. **Install Dependencies**:
+   ```bash
+   composer install
+   npm install && npm run dev
+   ```
 
-    ```sh
-    :/# composer install
-    :/# php artisan key:generate
-    :/# php artisan config:cache
-    :/# php artisan migrate:fresh --seed
-    ```
+2. **Initialize**:
+   ```bash
+   php artisan app:init
+   ```
+   This canonical command handles everything (Migrations, Seeders, Keys, Cache) in one idempotent step.
 
-    Then exit from the container.
-8. Visit **http://localhost:8080**. Admin login credentials:
+3. **Start Server**:
+   ```bash
+   php artisan serve
+   ```
+   - **Email**: `admin@ut.com`
+   - **Password**: `password`
 
-    - Email: admin@ut.com
-    - Password: password
-
-### Without Docker (Local Development):
-
-If you prefer to run the application directly on your local machine:
-
-1. Clone or download the repository.
-2. Create **purify** folder in `storage/app/` directory.
-3. Run `cp .env.example .env` and configure your database settings.
-4. Install dependencies:
-    ```sh
-    composer install
-    npm install
-    ```
-5. Generate application key:
-    ```sh
-    php artisan key:generate
-    ```
-6. Run migrations and seed the database:
-    ```sh
-    php artisan migrate:fresh --seed
-    ```
-7. Start the development server:
-    ```sh
-    php artisan serve
-    ```
-8. Visit **http://127.0.0.1:8000**. Admin login credentials:
-    - Email: admin@ut.com
-    - Password: password
-
-## 💻 Running on a New Computer
-
-If you are moving this project from one computer to another via GitHub, follow these exact steps to get it working.
-
-### 1. Basic Setup (Structure)
-1. **Clone the repository**: `git clone <your-repo-url>`
-2. **Install Composer dependencies**: `composer install`
-3. **Install NPM dependencies**: `npm install && npm run dev`
-4. **Environment File**: Copy `.env.example` to `.env` and update your database credentials ($DB_DATABASE, $DB_USERNAME, $DB_PASSWORD).
-5. **App Key**: Run `php artisan key:generate`
-6. **Create Folders**: Ensure `storage/app/purify` exists (create it if not).
-
-### 2. Transferring the Database (Data)
-Git only transfers the **code**, not your **data** (students, marks, comments). To move your data:
+## 💻 Moving to another Computer
+If you are moving this project via GitHub, just follow the **Manual Setup** or **Docker Quick Start** above.
+If you need to transfer your existing **data** (students, marks):
 
 **On the OLD computer:**
-1. Open your database tool (phpMyAdmin, MySQL Workbench, etc.).
-2. **Export** the `unifiedtransform` database to a `.sql` file.
+1. Export the database to a `.sql` file.
 
 **On the NEW computer:**
-1. Create a new empty database named `unifiedtransform` (or whatever you named it in `.env`).
-2. **Import** the `.sql` file you exported from the old computer.
+1. Import the `.sql` file into your database.
+2. Run `php artisan app:init` to ensure everything is synced.
 
-> [!IMPORTANT]
-> If you don't care about the old data and want a fresh start, you can just run `php artisan migrate --seed` instead of importing a `.sql` file. This will create the tables and add some demo data.
 
 ## Steps to follow:
 Please carefully follow the steps to setup the school.

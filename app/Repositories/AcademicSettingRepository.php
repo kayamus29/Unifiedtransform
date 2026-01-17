@@ -9,13 +9,13 @@ class AcademicSettingRepository implements AcademicSettingInterface
 {
     public function getAcademicSetting()
     {
-        return AcademicSetting::find(1);
+        return AcademicSetting::current();
     }
 
     public function updateAttendanceType($request)
     {
         try {
-            AcademicSetting::where('id', 1)->update($request);
+            AcademicSetting::current()->update($request);
         } catch (\Exception $e) {
             throw new \Exception('Failed to update attendance type. ' . $e->getMessage());
         }
@@ -28,7 +28,7 @@ class AcademicSettingRepository implements AcademicSettingInterface
             $status = "on";
         }
         try {
-            AcademicSetting::where('id', 1)->update(['marks_submission_status' => $status]);
+            AcademicSetting::current()->update(['marks_submission_status' => $status]);
         } catch (\Exception $e) {
             throw new \Exception('Failed to update final marks submission status. ' . $e->getMessage());
         }
@@ -37,7 +37,7 @@ class AcademicSettingRepository implements AcademicSettingInterface
     public function updateDefaultWeights($request)
     {
         try {
-            AcademicSetting::where('id', 1)->update($request);
+            AcademicSetting::current()->update($request);
         } catch (\Exception $e) {
             throw new \Exception('Failed to update default weights. ' . $e->getMessage());
         }
@@ -50,7 +50,7 @@ class AcademicSettingRepository implements AcademicSettingInterface
             $status = true;
         }
         try {
-            AcademicSetting::where('id', 1)->update(['enable_financial_withholding' => $status]);
+            AcademicSetting::current()->update(['enable_financial_withholding' => $status]);
         } catch (\Exception $e) {
             throw new \Exception('Failed to update financial withholding status. ' . $e->getMessage());
         }

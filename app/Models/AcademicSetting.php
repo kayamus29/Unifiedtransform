@@ -20,4 +20,17 @@ class AcademicSetting extends Model
     protected $casts = [
         'marks_breakdown' => 'array',
     ];
+
+    public static function current()
+    {
+        return self::firstOrCreate(
+            ['id' => 1],
+            [
+                'attendance_type' => 'section',
+                'marks_submission_status' => 0,
+                'default_exam_weight' => 70,
+                'default_ca1_weight' => 30,
+            ]
+        );
+    }
 }
