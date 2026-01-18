@@ -158,6 +158,42 @@ If you need to transfer your existing **data** (students, marks):
 1. Import the `.sql` file into your database.
 2. Run `php artisan app:init` to ensure everything is synced.
 
+---
+
+## 🎨 Frontend Maintenance (Static SPA)
+
+The public-facing website is a modern React SPA deployed as static assets in the `public/` directory.
+
+### 🖼️ Updating Images (Fast Method)
+To quickly update photos without rebuilding the code, you can replace the files in `public/assets/`. Ensure your new image has the **exact same filename** (including the random suffix generated during build, e.g., `student_headboy-DeorUD_9.jpg`).
+
+**Source Image Mapping:**
+For easier identification, the following descriptive names were used in the project source:
+- `student_headboy.jpg`
+- `student_headgirl.jpg`
+- `staff_vice_principal.jpg`
+- `staff_grade_coordinator.jpg`
+- `hero_main.jpg`
+- `about_story.jpg`
+
+### 🛠️ Updating Content (Permanent Source)
+If you want to change text, layouts, or add new features, use the permanent source folder already set up in your project:
+
+1. **Navigate to the Source**:
+   ```bash
+   cd frontend_source
+   ```
+2. **Make Changes**: Editing components in `src/components/` (e.g., `Header.tsx`, `HeroSection.tsx`).
+3. **Build & Deploy**:
+   ```bash
+   npm run build
+   # Copy the 'dist' contents into the Laravel 'public/' folder
+   cp -r dist/* ../public/
+   ```
+
+> [!TIP]
+> Always check that the `Portal Login` link in `Header.tsx` points to `/login` to ensure it integrates correctly with the Laravel backend.
+
 
 ## Steps to follow:
 Please carefully follow the steps to setup the school.

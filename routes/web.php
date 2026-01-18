@@ -285,26 +285,5 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/timetable', [App\Http\Controllers\StudentPortalController::class, 'timetable'])->name('timetable');
     });
 
-    // ===========================================
-    // CMS ADMIN (New Implementation)
-    // ===========================================
-    Route::prefix('admin/cms')->name('admin.cms.')->group(function () {
-        Route::resource('pages', App\Http\Controllers\Admin\CmsPageController::class);
-        Route::resource('posts', App\Http\Controllers\Admin\CmsPostController::class);
-        Route::resource('banners', App\Http\Controllers\Admin\CmsBannerController::class);
-        Route::resource('announcements', App\Http\Controllers\Admin\CmsAnnouncementController::class);
-        Route::get('inquiries', [App\Http\Controllers\Admin\ContactSubmissionController::class, 'index'])->name('inquiries.index');
-        Route::get('inquiries/{submission}', [App\Http\Controllers\Admin\ContactSubmissionController::class, 'show'])->name('inquiries.show');
-        Route::delete('inquiries/{submission}', [App\Http\Controllers\Admin\ContactSubmissionController::class, 'destroy'])->name('inquiries.destroy');
-    });
 });
 
-// ===========================================
-// PUBLIC WEBSITE ROUTES
-// ===========================================
-Route::get('/', [App\Http\Controllers\WebsiteController::class, 'index'])->name('website.home');
-Route::get('/blog', [App\Http\Controllers\WebsiteController::class, 'blog'])->name('website.blog');
-Route::get('/blog/{slug}', [App\Http\Controllers\WebsiteController::class, 'post'])->name('website.post');
-Route::get('/contact', [App\Http\Controllers\WebsiteController::class, 'contact'])->name('website.contact');
-Route::post('/contact', [App\Http\Controllers\WebsiteController::class, 'submitContact'])->name('website.contact.submit');
-Route::get('/{slug}', [App\Http\Controllers\WebsiteController::class, 'page'])->name('website.page');
